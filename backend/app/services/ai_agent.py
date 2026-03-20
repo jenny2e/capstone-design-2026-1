@@ -1,0 +1,458 @@
+from datetime import date, datetime, timedelta
+
+from sqlalchemy.orm import Session
+
+from app.core.config import settings
+from app.models.schedule import Schedule
+from app.models.user import ExamSchedule, UserProfile
+
+DAY_NAMES = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+DAY_NAMES_SHORT = ["월", "화", "수", "목", "금", "토", "일"]
+
+# ─── Tool definitions (OpenAPI-style, converted to Gemini format) ─────────────
+
+TOOLS_SPEC = [
+    {
+        "name": "add_schedule",
+        "description": (
+            "새 일정을 추가합니다. 반복 수업이면 day_of_week 사용, "
+            "특정 날짜 이벤트이면 date(YYYY-MM-DD) 사용합니다."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "title": {"type": "string", "description": "일정 제목"},
+                "day_of_week": {"type": "integer", "description": "요일 0=월~6=일. date 있으면 자동 계산"},
+                "date": {"type": "string", "description": "특정 날짜 YYYY-MM-DD"},
+                "start_time": {"type": "string", "description": "시작 시간 HH:MM"},
+                "end_time": {"type": "string", "description": "종료 시간 HH:MM"},
+                "location": {"type": "string", "description": "장소 (선택)"},
+                "color": {"type": "string", "description": "색상 hex (선택)"},
+                "priority": {"type": "integer", "description": "우선순위 0=보통 1=높음 2=긴급"},
+                "schedule_type": {"type": "string", "description": "class/event/study"},
+            },
+            "required": ["title", "start_time", "end_time"],
+        },
+    },
+    {
+        "name": "update_schedule",
+        "description": "기존 일정을 수정합니다.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "schedule_id": {"type": "integer", "description": "수정할 일정 ID"},
+                "title": {"type": "string"},
+                "day_of_week": {"type": "integer"},
+                "date": {"type": "string", "description": "YYYY-MM-DD"},
+                "start_time": {"type": "string", "description": "HH:MM"},
+                "end_time": {"type": "string", "description": "HH:MM"},
+                "location": {"type": "string"},
+                "color": {"type": "string"},
+                "priority": {"type": "integer"},
+                "is_completed": {"type": "boolean"},
+            },
+            "required": ["schedule_id"],
+        },
+    },
+    {
+        "name": "delete_schedule",
+        "description": "일정을 삭제합니다.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "schedule_id": {"type": "integer", "description": "삭제할 일정 ID"},
+            },
+            "required": ["schedule_id"],
+        },
+    },
+    {
+        "name": "list_schedules",
+        "description": "등록된 일정 목록을 조회합니다.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "filter_date": {"type": "string", "description": "특정 날짜 YYYY-MM-DD 필터"},
+                "filter_type": {"type": "string", "description": "all/class/event/study"},
+            },
+        },
+    },
+    {
+        "name": "find_free_slots",
+        "description": "특정 날짜 또는 요일의 빈 시간대를 찾습니다.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "day_of_week": {"type": "integer", "description": "요일 0=월~6=일"},
+                "date": {"type": "string", "description": "특정 날짜 YYYY-MM-DD"},
+                "duration_minutes": {"type": "integer", "description": "최소 시간(분), 기본 60"},
+            },
+        },
+    },
+    {
+        "name": "check_conflicts",
+        "description": "일정 추가/수정 전 시간 충돌 여부를 확인합니다.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "day_of_week": {"type": "integer"},
+                "date": {"type": "string", "description": "YYYY-MM-DD"},
+                "start_time": {"type": "string", "description": "HH:MM"},
+                "end_time": {"type": "string", "description": "HH:MM"},
+                "exclude_id": {"type": "integer", "description": "수정 시 자기 자신 제외"},
+            },
+            "required": ["start_time", "end_time"],
+        },
+    },
+    {
+        "name": "generate_study_schedule",
+        "description": "기존 일정·수면 시간·시험 일정을 고려해 학습 시간표를 자동 생성합니다.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "subject": {"type": "string", "description": "학습 과목/내용"},
+                "target_days": {"type": "integer", "description": "생성 기간(일수), 기본 7"},
+                "daily_study_hours": {"type": "number", "description": "하루 목표 학습 시간(시간 단위), 기본 2"},
+            },
+            "required": ["subject"],
+        },
+    },
+]
+
+
+# ─── helpers ──────────────────────────────────────────────────────────────────
+
+def _t2m(t: str) -> int:
+    h, m = t.split(":")
+    return int(h) * 60 + int(m)
+
+
+def _m2t(m: int) -> str:
+    return f"{m // 60:02d}:{m % 60:02d}"
+
+
+def _overlap(s1: str, e1: str, s2: str, e2: str) -> bool:
+    return _t2m(s1) < _t2m(e2) and _t2m(s2) < _t2m(e1)
+
+
+def _dow(date_str: str) -> int:
+    return datetime.strptime(date_str, "%Y-%m-%d").weekday()
+
+
+def _day_schedules(db: Session, user_id: int, dow: int, date_str: str | None) -> list:
+    recurring = (
+        db.query(Schedule)
+        .filter(Schedule.user_id == user_id, Schedule.day_of_week == dow, Schedule.date.is_(None))
+        .all()
+    )
+    if date_str:
+        specific = (
+            db.query(Schedule)
+            .filter(Schedule.user_id == user_id, Schedule.date == date_str)
+            .all()
+        )
+        seen = {s.id for s in recurring}
+        for s in specific:
+            if s.id not in seen:
+                recurring.append(s)
+    return recurring
+
+
+# ─── tool execution ───────────────────────────────────────────────────────────
+
+def _execute_tool(tool_name: str, tool_input: dict, db: Session, user_id: int) -> str:
+    today = date.today()
+
+    if tool_name == "add_schedule":
+        date_str = tool_input.get("date")
+        dow = tool_input.get("day_of_week")
+        if date_str:
+            dow = _dow(date_str)
+        elif dow is None:
+            dow = 0
+        s = Schedule(
+            user_id=user_id,
+            title=tool_input["title"],
+            day_of_week=dow,
+            date=date_str,
+            start_time=tool_input["start_time"],
+            end_time=tool_input["end_time"],
+            location=tool_input.get("location"),
+            color=tool_input.get("color", "#6366F1"),
+            priority=tool_input.get("priority", 0),
+            schedule_type=tool_input.get("schedule_type", "event"),
+        )
+        db.add(s)
+        db.commit()
+        db.refresh(s)
+        label = date_str if date_str else f"매주 {DAY_NAMES[dow]}"
+        loc = f"  📍 {s.location}" if s.location else ""
+        return f"✅ '{s.title}' 추가 완료!\n📅 {label}  ⏰ {s.start_time}~{s.end_time}{loc}\n🆔 ID: {s.id}"
+
+    elif tool_name == "update_schedule":
+        sid = tool_input["schedule_id"]
+        s = db.query(Schedule).filter(Schedule.id == sid, Schedule.user_id == user_id).first()
+        if not s:
+            return f"❌ ID {sid} 일정을 찾을 수 없습니다."
+        for f in ["title", "day_of_week", "date", "start_time", "end_time", "location", "color", "priority", "is_completed"]:
+            if f in tool_input:
+                setattr(s, f, tool_input[f])
+        if "date" in tool_input and tool_input["date"]:
+            s.day_of_week = _dow(tool_input["date"])
+        db.commit()
+        db.refresh(s)
+        label = s.date if s.date else f"매주 {DAY_NAMES[s.day_of_week]}"
+        return f"✅ '{s.title}' 수정 완료!\n📅 {label}  ⏰ {s.start_time}~{s.end_time}"
+
+    elif tool_name == "delete_schedule":
+        sid = tool_input["schedule_id"]
+        s = db.query(Schedule).filter(Schedule.id == sid, Schedule.user_id == user_id).first()
+        if not s:
+            return f"❌ ID {sid} 일정을 찾을 수 없습니다."
+        title = s.title
+        db.delete(s)
+        db.commit()
+        return f"🗑️ '{title}' 삭제 완료!"
+
+    elif tool_name == "list_schedules":
+        schedules = db.query(Schedule).filter(Schedule.user_id == user_id).all()
+        ft = tool_input.get("filter_type", "all")
+        fd = tool_input.get("filter_date")
+        if ft and ft != "all":
+            schedules = [s for s in schedules if s.schedule_type == ft]
+        if fd:
+            fd_dow = _dow(fd)
+            schedules = [s for s in schedules if s.date == fd or (s.date is None and s.day_of_week == fd_dow)]
+        if not schedules:
+            return "📭 등록된 일정이 없습니다."
+        picons = {0: "", 1: "🟡", 2: "🔴"}
+        lines = [f"📋 일정 목록 ({len(schedules)}개):\n"]
+        for s in sorted(schedules, key=lambda x: (x.day_of_week, x.start_time)):
+            lbl = s.date if s.date else DAY_NAMES[s.day_of_week]
+            icon = picons.get(s.priority or 0, "")
+            line = f"  [ID:{s.id}] {icon} {s.title}  {lbl} {s.start_time}~{s.end_time}"
+            if s.location:
+                line += f"  ({s.location})"
+            lines.append(line)
+        return "\n".join(lines)
+
+    elif tool_name == "find_free_slots":
+        date_str = tool_input.get("date")
+        dow = tool_input.get("day_of_week")
+        duration = tool_input.get("duration_minutes", 60)
+        if date_str:
+            dow = _dow(date_str)
+        elif dow is None:
+            return "❌ 날짜 또는 요일을 지정해 주세요."
+        existing = _day_schedules(db, user_id, dow, date_str)
+        busy = sorted((_t2m(s.start_time), _t2m(s.end_time)) for s in existing)
+        free, cursor = [], 8 * 60
+        for bs, be in busy:
+            if cursor + duration <= bs:
+                free.append((_m2t(cursor), _m2t(bs)))
+            cursor = max(cursor, be)
+        if cursor + duration <= 22 * 60:
+            free.append((_m2t(cursor), _m2t(22 * 60)))
+        label = date_str if date_str else DAY_NAMES[dow]
+        if not free:
+            return f"😅 {label}에는 {duration}분 이상의 빈 시간이 없습니다."
+        result = f"🕐 {label} 빈 시간대 ({duration}분 이상):\n"
+        for s, e in free:
+            result += f"  • {s} ~ {e}\n"
+        return result
+
+    elif tool_name == "check_conflicts":
+        date_str = tool_input.get("date")
+        dow = tool_input.get("day_of_week")
+        start_time = tool_input["start_time"]
+        end_time = tool_input["end_time"]
+        exclude_id = tool_input.get("exclude_id")
+        if date_str:
+            dow = _dow(date_str)
+        elif dow is None:
+            return "❌ 날짜 또는 요일을 지정해 주세요."
+        existing = _day_schedules(db, user_id, dow, date_str)
+        conflicts = [
+            s for s in existing
+            if (exclude_id is None or s.id != exclude_id)
+            and _overlap(start_time, end_time, s.start_time, s.end_time)
+        ]
+        label = date_str if date_str else DAY_NAMES[dow]
+        if not conflicts:
+            return f"✅ {label} {start_time}~{end_time} 시간대에 충돌이 없습니다."
+        result = f"⚠️ 충돌 발견 ({label} {start_time}~{end_time}):\n"
+        for s in conflicts:
+            result += f"  • [ID:{s.id}] {s.title} ({s.start_time}~{s.end_time})\n"
+        return result
+
+    elif tool_name == "generate_study_schedule":
+        subject = tool_input["subject"]
+        target_days = tool_input.get("target_days", 7)
+        daily_hours = tool_input.get("daily_study_hours", 2)
+        profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+        wake = _t2m(profile.sleep_end if profile and profile.sleep_end else "07:00")
+        sleep = _t2m(profile.sleep_start if profile and profile.sleep_start else "23:00")
+        created = 0
+        for offset in range(target_days):
+            tdate = today + timedelta(days=offset)
+            date_str = tdate.strftime("%Y-%m-%d")
+            dow = tdate.weekday()
+            existing = _day_schedules(db, user_id, dow, date_str)
+            busy = sorted((_t2m(s.start_time), _t2m(s.end_time)) for s in existing)
+            remaining = int(daily_hours * 60)
+            cursor = max(8 * 60, wake)
+            blocks = []
+            for bs, be in busy:
+                if cursor + 30 <= bs and remaining > 0:
+                    b = min(bs - cursor, remaining, 120)
+                    blocks.append((cursor, cursor + b))
+                    remaining -= b
+                cursor = max(cursor, be)
+            if remaining >= 30 and cursor + 30 <= sleep:
+                b = min(sleep - cursor, remaining, 120)
+                blocks.append((cursor, cursor + b))
+            for sm, em in blocks:
+                db.add(Schedule(
+                    user_id=user_id, title=f"📚 {subject} 학습",
+                    day_of_week=dow, date=date_str,
+                    start_time=_m2t(sm), end_time=_m2t(em),
+                    color="#8B5CF6", priority=1, schedule_type="study",
+                ))
+                created += 1
+        db.commit()
+        end_date = (today + timedelta(days=target_days - 1)).strftime("%Y-%m-%d")
+        if created:
+            return (f"📚 '{subject}' 학습 일정 {created}개 생성 완료!\n"
+                    f"📅 {today.strftime('%Y-%m-%d')} ~ {end_date}  ⏰ 하루 {daily_hours}시간 목표")
+        return "😅 여유 시간이 부족하여 학습 일정을 생성하지 못했습니다."
+
+    return f"❌ 알 수 없는 도구: {tool_name}"
+
+
+# ─── Gemini tool builder ───────────────────────────────────────────────────────
+
+def _build_gemini_tools():
+    import google.generativeai as genai
+    from google.generativeai import protos
+
+    type_map = {
+        "string": protos.Type.STRING,
+        "integer": protos.Type.INTEGER,
+        "number": protos.Type.NUMBER,
+        "boolean": protos.Type.BOOLEAN,
+        "object": protos.Type.OBJECT,
+    }
+
+    function_declarations = []
+    for spec in TOOLS_SPEC:
+        props = {}
+        for prop_name, prop_def in spec["parameters"].get("properties", {}).items():
+            props[prop_name] = protos.Schema(
+                type=type_map.get(prop_def.get("type", "string"), protos.Type.STRING),
+                description=prop_def.get("description", ""),
+            )
+
+        fd = protos.FunctionDeclaration(
+            name=spec["name"],
+            description=spec["description"],
+            parameters=protos.Schema(
+                type=protos.Type.OBJECT,
+                properties=props,
+                required=spec["parameters"].get("required", []),
+            ),
+        )
+        function_declarations.append(fd)
+
+    return protos.Tool(function_declarations=function_declarations)
+
+
+# ─── main agent entry point ───────────────────────────────────────────────────
+
+def run_ai_agent(
+    db: Session,
+    user_id: int,
+    user_message: str,
+    conversation_history: list | None = None,
+) -> str:
+    import google.generativeai as genai
+    from google.generativeai import protos
+
+    if not settings.GEMINI_API_KEY:
+        raise ValueError("GEMINI_API_KEY not configured")
+
+    genai.configure(api_key=settings.GEMINI_API_KEY)
+
+    today = date.today()
+    tomorrow = today + timedelta(days=1)
+    day_after = today + timedelta(days=2)
+
+    system_prompt = f"""당신은 AI 시간표 및 일정 관리 어시스턴트입니다. 한국어로 친절하게 응답합니다.
+
+## 현재 날짜
+- 오늘: {today.strftime("%Y년 %m월 %d일")} ({DAY_NAMES[today.weekday()]})  ISO: {today.isoformat()}
+- 내일: {tomorrow.isoformat()} ({DAY_NAMES[tomorrow.weekday()]})
+- 모레: {day_after.isoformat()} ({DAY_NAMES[day_after.weekday()]})
+
+## 날짜 표현 변환
+"내일"→{tomorrow.isoformat()}, "모레"→{day_after.isoformat()}, "오늘"→{today.isoformat()}
+
+## 일정 관리 규칙
+1. 추가/수정/삭제 요청을 정확히 인식합니다.
+2. 특정 날짜("내일 3시" 등) → date=YYYY-MM-DD 사용
+3. 반복 수업("매주 월요일") → day_of_week 사용
+4. 일정 추가/수정 전에 check_conflicts로 충돌 확인
+5. 제목·날짜·시간 중 필수 정보 누락 시 사용자에게 질문
+6. 긴급 일정은 priority=2
+7. 수정 대상 모호 시 list_schedules로 목록 확인 후 ID 특정
+
+작업 완료 후 결과를 간결하게 안내하세요."""
+
+    gemini_tools = _build_gemini_tools()
+    model = genai.GenerativeModel(
+        model_name="gemini-1.5-flash",
+        system_instruction=system_prompt,
+        tools=[gemini_tools],
+    )
+
+    # Convert conversation history to Gemini format (user/model roles)
+    history = []
+    for msg in (conversation_history or []):
+        role = "model" if msg["role"] == "assistant" else "user"
+        history.append({"role": role, "parts": [msg["content"]]})
+
+    chat = model.start_chat(history=history)
+
+    response = chat.send_message(user_message)
+
+    for _ in range(15):
+        # Collect all function calls in this response
+        fn_calls = [
+            part.function_call
+            for part in response.candidates[0].content.parts
+            if part.function_call.name  # non-empty name means it's a real call
+        ]
+
+        if not fn_calls:
+            # No more tool calls — return text
+            return "".join(
+                part.text
+                for part in response.candidates[0].content.parts
+                if hasattr(part, "text")
+            )
+
+        # Execute all tool calls and send results back
+        result_parts = []
+        for fc in fn_calls:
+            tool_input = {k: v for k, v in fc.args.items()}
+            result = _execute_tool(fc.name, tool_input, db, user_id)
+            result_parts.append(
+                protos.Part(
+                    function_response=protos.FunctionResponse(
+                        name=fc.name,
+                        response={"result": result},
+                    )
+                )
+            )
+
+        response = chat.send_message(protos.Content(parts=result_parts))
+
+    return "응답 생성 중 문제가 발생했습니다. 다시 시도해 주세요."

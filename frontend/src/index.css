@@ -1,0 +1,104 @@
+/* ===== Global Animations ===== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+  33%       { transform: translateY(-28px) rotate(4deg) scale(1.03); }
+  66%       { transform: translateY(-14px) rotate(-4deg) scale(0.97); }
+}
+
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+  30%           { transform: translateY(-7px); opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
+}
+
+@keyframes currentTimePulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+/* ===== Custom Scrollbar ===== */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #DDD6FE; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #8B5CF6; }
+
+/* ===== Utility Classes ===== */
+.fade-in-up { animation: fadeInUp 0.3s ease-out both; }
+.fade-in    { animation: fadeIn 0.25s ease-out both; }
+
+/* Login card entrance */
+.login-card {
+  animation: fadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Floating orb */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  animation: float linear infinite;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Chat bubbles */
+.msg-user { animation: slideInRight 0.22s ease-out; }
+.msg-ai   { animation: slideInLeft  0.22s ease-out; }
+
+/* Typing dots */
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #A78BFA;
+  animation: typing 1.3s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.18s; }
+.typing-dot:nth-child(3) { animation-delay: 0.36s; }
+
+/* Current time indicator dot */
+.time-dot {
+  animation: currentTimePulse 2s ease-in-out infinite;
+}
+
+/* Glassmorphism header */
+.glass-header {
+  background: rgba(79, 70, 229, 0.85) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Hover button glow */
+.btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5) !important;
+}
+
+/* Today column highlight */
+.today-col {
+  background: linear-gradient(180deg, rgba(99,102,241,0.06) 0%, rgba(99,102,241,0.02) 100%);
+}
