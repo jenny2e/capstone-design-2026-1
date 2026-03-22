@@ -28,7 +28,7 @@ function ScheduleBlock({ schedule, allSchedules, onDelete, onEdit }) {
   const endMin = timeToMinutes(schedule.end_time);
   const top = ((startMin - START_HOUR * 60) / 60) * HOUR_PX;
   const height = Math.max(((endMin - startMin) / 60) * HOUR_PX, 20);
-  const color = schedule.color || '#6366F1';
+  const color = schedule.color || '#3B66CC';
   const conflict = hasConflict(schedule, allSchedules);
   const isUrgent = schedule.priority === 2;
 
@@ -44,39 +44,39 @@ function ScheduleBlock({ schedule, allSchedules, onDelete, onEdit }) {
         right: '4px',
         background: conflict
           ? `linear-gradient(160deg, ${color}DD, ${color}99)`
-          : `linear-gradient(160deg, ${color}F0, ${color}C0)`,
-        borderLeft: `3.5px solid ${conflict ? '#EF4444' : isUrgent ? '#F97316' : color}`,
-        borderRadius: '0 8px 8px 0',
-        outline: conflict ? '1.5px dashed rgba(239,68,68,0.7)' : 'none',
+          : `linear-gradient(160deg, ${color}F2, ${color}CC)`,
+        borderLeft: `3.5px solid ${conflict ? '#ba1a1a' : isUrgent ? '#F97316' : color}`,
+        borderRadius: '0 10px 10px 0',
+        outline: conflict ? '1.5px dashed rgba(186,26,26,0.6)' : 'none',
         padding: '4px 7px',
         overflow: 'hidden',
         cursor: 'pointer',
         zIndex: 1,
         boxSizing: 'border-box',
         boxShadow: conflict
-          ? `0 4px 12px rgba(239,68,68,0.35), inset 0 1px 0 rgba(255,255,255,0.2)`
-          : `0 3px 10px ${color}44, inset 0 1px 0 rgba(255,255,255,0.25)`,
-        transform: hovered ? 'translateY(-2px) scaleX(1.01)' : 'none',
+          ? `0 4px 12px rgba(186,26,26,0.25), inset 0 1px 0 rgba(255,255,255,0.15)`
+          : `0 2px 8px ${color}33, inset 0 1px 0 rgba(255,255,255,0.2)`,
+        transform: hovered ? 'translateY(-1px) scaleX(1.01)' : 'none',
         transition: 'transform 0.18s ease, box-shadow 0.18s ease',
       }}
       onClick={() => onEdit && onEdit(schedule)}
     >
       {conflict && (
-        <div style={{ position: 'absolute', top: 2, left: 4, fontSize: 9, color: '#EF4444', fontWeight: 700 }}>
-          ⚠️
+        <div style={{ position: 'absolute', top: 2, left: 4, fontSize: 9, color: '#ba1a1a', fontWeight: 700 }}>
+          ⚠
         </div>
       )}
       {isUrgent && !conflict && (
-        <div style={{ position: 'absolute', top: 2, left: 4, fontSize: 9 }}>🔴</div>
+        <div style={{ position: 'absolute', top: 2, left: 4, fontSize: 9, color: '#F97316' }}>●</div>
       )}
-      <div style={{ color: 'white', fontSize: '11px', fontWeight: 700, lineHeight: 1.3, paddingLeft: conflict || isUrgent ? 14 : 0 }}>
+      <div style={{ color: 'white', fontSize: '11px', fontWeight: 700, lineHeight: 1.3, paddingLeft: conflict || isUrgent ? 12 : 0, fontFamily: "'Inter', sans-serif" }}>
         {schedule.title}
       </div>
-      <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: '10px' }}>
+      <div style={{ color: 'rgba(255,255,255,0.88)', fontSize: '10px' }}>
         {schedule.start_time}~{schedule.end_time}
       </div>
       {schedule.location && (
-        <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '10px' }}>{schedule.location}</div>
+        <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: '10px' }}>{schedule.location}</div>
       )}
       {onDelete && (
         <button
@@ -86,7 +86,7 @@ function ScheduleBlock({ schedule, allSchedules, onDelete, onEdit }) {
           }}
           style={{
             position: 'absolute', top: 3, right: 3,
-            background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)',
+            background: 'rgba(0,0,0,0.18)', backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)',
             color: 'white', border: 'none', borderRadius: '50%',
             width: 16, height: 16, cursor: 'pointer', fontSize: 11,
             lineHeight: '16px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -108,15 +108,13 @@ export default function Timetable({ schedules = [], onDelete, onEdit }) {
     return () => clearInterval(t);
   }, []);
 
-  // Today's date info for showing current week's specific-date events
   const today = new Date();
-  const todayDow = today.getDay() === 0 ? 6 : today.getDay() - 1; // 0=Mon
+  const todayDow = today.getDay() === 0 ? 6 : today.getDay() - 1;
 
   const currentTimeMin = now.getHours() * 60 + now.getMinutes();
   const currentTimeTop = ((currentTimeMin - START_HOUR * 60) / 60) * HOUR_PX;
   const showTimeLine = currentTimeMin >= START_HOUR * 60 && currentTimeMin <= (START_HOUR + HOURS.length) * 60;
 
-  // Get Monday of current week
   const mondayOffset = todayDow;
   const weekDates = DAYS.map((_, i) => {
     const d = new Date(today);
@@ -124,7 +122,6 @@ export default function Timetable({ schedules = [], onDelete, onEdit }) {
     return d.toISOString().slice(0, 10);
   });
 
-  // Filter schedules per column: recurring for that day_of_week + this week's specific dates
   const getColumnSchedules = (dayIndex) => {
     return schedules.filter((s) => {
       if (s.date) {
@@ -140,23 +137,26 @@ export default function Timetable({ schedules = [], onDelete, onEdit }) {
     <div>
       {conflictCount > 0 && (
         <div style={{
-          padding: '8px 16px',
-          background: '#FEF2F2',
-          borderBottom: '1px solid #FECACA',
+          padding: '9px 18px',
+          background: '#ffdad6',
+          borderBottom: '1px solid rgba(186,26,26,0.15)',
           fontSize: 12,
-          color: '#DC2626',
+          color: '#ba1a1a',
+          fontWeight: 600,
           display: 'flex',
           alignItems: 'center',
           gap: 6,
+          fontFamily: "'Inter', sans-serif",
         }}>
-          ⚠️ {conflictCount}개의 일정이 시간 충돌 상태입니다. 빨간 테두리로 표시됩니다.
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>warning</span>
+          {conflictCount}개의 일정이 시간 충돌 상태입니다.
         </div>
       )}
       <div style={{ overflowX: 'auto', userSelect: 'none' }}>
         <div style={{ display: 'flex', minWidth: 580 }}>
           {/* Time column */}
           <div style={{ width: 48, flexShrink: 0 }}>
-            <div style={{ height: 36 }} />
+            <div style={{ height: 44 }} />
             <div style={{ position: 'relative', height: totalHeight }}>
               {HOURS.map((hour) => (
                 <div
@@ -166,8 +166,9 @@ export default function Timetable({ schedules = [], onDelete, onEdit }) {
                     top: (hour - START_HOUR) * HOUR_PX - 7,
                     right: 6,
                     fontSize: 11,
-                    color: '#C4B5FD',
+                    color: '#747684',
                     whiteSpace: 'nowrap',
+                    fontFamily: "'Inter', sans-serif",
                   }}
                 >
                   {hour}:00
@@ -180,34 +181,34 @@ export default function Timetable({ schedules = [], onDelete, onEdit }) {
           {DAYS.map((day, dayIndex) => {
             const colSchedules = getColumnSchedules(dayIndex);
             const isToday = dayIndex === todayDow;
+            const isSat = dayIndex === 5;
+            const isSun = dayIndex === 6;
             return (
               <div key={dayIndex} style={{ flex: 1, minWidth: 70 }}>
                 {/* Header */}
-                <div
-                  style={{
-                    height: 44,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 700,
-                    fontSize: 12,
-                    color: isToday ? '#4F46E5' : dayIndex < 5 ? '#6B7280' : dayIndex === 5 ? '#2563EB' : '#DC2626',
-                    backgroundColor: isToday ? '#EEF2FF' : '#FAFAFA',
-                    borderLeft: '1px solid #F0EFFE',
-                    borderBottom: isToday ? '2.5px solid #6366F1' : '1.5px solid #F0EFFE',
-                    lineHeight: 1.2,
-                    transition: 'background 0.2s',
-                  }}
-                >
+                <div style={{
+                  height: 44,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: 12,
+                  color: isToday ? '#3B66CC' : isSat ? '#2563EB' : isSun ? '#ba1a1a' : '#434653',
+                  backgroundColor: isToday ? '#f1f4f7' : '#fafafa',
+                  borderLeft: '1px solid #f0f3f7',
+                  borderBottom: isToday ? '2.5px solid #3B66CC' : '1.5px solid #e5e8eb',
+                  lineHeight: 1.2,
+                  fontFamily: "'Inter', sans-serif",
+                }}>
                   <span style={{ fontSize: isToday ? 13 : 12 }}>{day}</span>
                   <span style={{
                     fontSize: 10,
-                    color: isToday ? '#6366F1' : '#C4B5FD',
+                    color: isToday ? '#3B66CC' : '#c3c6d5',
                     fontWeight: isToday ? 700 : 400,
-                    background: isToday ? '#E0E7FF' : 'transparent',
+                    background: isToday ? '#dae1ff' : 'transparent',
                     borderRadius: 4,
-                    padding: isToday ? '0 4px' : 0,
+                    padding: isToday ? '1px 5px' : 0,
                     marginTop: 1,
                   }}>
                     {weekDates[dayIndex]?.slice(5)}
@@ -217,7 +218,7 @@ export default function Timetable({ schedules = [], onDelete, onEdit }) {
                 {/* Grid */}
                 <div
                   className={isToday ? 'today-col' : ''}
-                  style={{ position: 'relative', height: totalHeight, borderLeft: '1px solid #F0EFFE' }}
+                  style={{ position: 'relative', height: totalHeight, borderLeft: '1px solid #f0f3f7' }}
                 >
                   {HOURS.map((hour) => (
                     <div
@@ -226,7 +227,7 @@ export default function Timetable({ schedules = [], onDelete, onEdit }) {
                         position: 'absolute',
                         top: (hour - START_HOUR) * HOUR_PX,
                         left: 0, right: 0,
-                        borderTop: hour % 2 === 0 ? '1px solid #EEE9FD' : '1px dashed #F5F2FF',
+                        borderTop: hour % 2 === 0 ? '1px solid #ebeef1' : '1px dashed #f1f4f7',
                       }}
                     />
                   ))}
@@ -234,8 +235,8 @@ export default function Timetable({ schedules = [], onDelete, onEdit }) {
                   {/* Current time indicator */}
                   {isToday && showTimeLine && (
                     <div style={{ position: 'absolute', top: currentTimeTop, left: 0, right: 0, zIndex: 5, display: 'flex', alignItems: 'center' }}>
-                      <div className="time-dot" style={{ width: 9, height: 9, borderRadius: '50%', background: '#EF4444', flexShrink: 0, boxShadow: '0 0 0 3px rgba(239,68,68,0.25)' }} />
-                      <div style={{ flex: 1, height: 2, background: 'linear-gradient(90deg, #EF4444, rgba(239,68,68,0.2))' }} />
+                      <div className="time-dot" style={{ width: 9, height: 9, borderRadius: '50%', background: '#3B66CC', flexShrink: 0, boxShadow: '0 0 0 3px rgba(59,102,204,0.2)' }} />
+                      <div style={{ flex: 1, height: 2, background: 'linear-gradient(90deg, #3B66CC, rgba(59,102,204,0.15))' }} />
                     </div>
                   )}
 

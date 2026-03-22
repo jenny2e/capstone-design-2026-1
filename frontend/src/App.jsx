@@ -49,14 +49,18 @@ export default function App() {
         style={{
           minHeight: '100vh',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#F5F3FF',
-          color: '#7C73C0',
-          fontSize: 16,
+          background: '#f7fafd',
+          color: '#434653',
+          fontSize: 14,
+          gap: 12,
+          fontFamily: "'Inter', sans-serif",
         }}
       >
-        로딩 중...
+        <div style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 20, color: '#181c1e' }}>AI 시간표</div>
+        <div style={{ color: '#747684' }}>로딩 중...</div>
       </div>
     );
   }
