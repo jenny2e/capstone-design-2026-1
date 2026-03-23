@@ -226,6 +226,88 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* ===== About / Etymology Section ===== */}
+        <section id="about" style={{ background: '#fff', padding: '96px 24px' }}>
+          <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+            {/* Top label */}
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 16px', borderRadius: 9999, background: '#ebeef1', marginBottom: 48 }}>
+              <span className="material-symbols-outlined" style={{ color: '#1a4db2', fontSize: 16 }}>history_edu</span>
+              <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#434653', fontFamily: "'Inter', sans-serif" }}>이름의 이야기</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
+              {/* Left: etymology visual */}
+              <div>
+                {/* Word breakdown */}
+                <div style={{ marginBottom: 40 }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 0, marginBottom: 12 }}>
+                    <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 72, color: '#1a4db2', letterSpacing: '-2px', lineHeight: 1 }}>SK</span>
+                    <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 72, color: '#e0e3e6', letterSpacing: '-2px', lineHeight: 1 }}>EMA</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ height: 2, width: 40, background: '#1a4db2', borderRadius: 1 }} />
+                    <span style={{ fontSize: 13, color: '#747684', fontFamily: "'Inter', sans-serif", letterSpacing: '0.05em' }}>from <strong style={{ color: '#181c1e' }}>Scheme</strong> · <em>σχῆμα</em> (Greek)</span>
+                  </div>
+                </div>
+
+                {/* Etymology cards */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {[
+                    { lang: 'Greek', word: 'σχῆμα (schéma)', meaning: '형태, 모양, 구조 — form, figure, plan' },
+                    { lang: 'English', word: 'Scheme', meaning: '체계, 계획, 구성 — a systematic arrangement' },
+                    { lang: 'SKEMA', word: 'SKEMA', meaning: '나만의 삶의 체계를 설계한다' },
+                  ].map(({ lang, word, meaning }, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 16, padding: '16px 20px', borderRadius: 14, background: i === 2 ? '#1a4db2' : '#f7fafd', border: `1px solid ${i === 2 ? 'transparent' : 'rgba(195,198,213,0.3)'}` }}>
+                      <div style={{ width: 56, flexShrink: 0 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: i === 2 ? 'rgba(255,255,255,0.6)' : '#747684', fontFamily: "'Inter', sans-serif" }}>{lang}</span>
+                      </div>
+                      <div>
+                        <div style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 700, fontSize: 15, color: i === 2 ? '#fff' : '#181c1e', marginBottom: 3 }}>{word}</div>
+                        <div style={{ fontSize: 13, color: i === 2 ? 'rgba(255,255,255,0.75)' : '#434653', lineHeight: 1.5 }}>{meaning}</div>
+                      </div>
+                      {i < 2 && (
+                        <div style={{ marginLeft: 'auto', flexShrink: 0, alignSelf: 'center' }}>
+                          <span className="material-symbols-outlined" style={{ color: '#c3c6d5', fontSize: 18 }}>arrow_downward</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right: brand story */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+                <div>
+                  <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 36, color: '#181c1e', margin: '0 0 16px', lineHeight: 1.2, letterSpacing: '-0.5px' }}>
+                    우리가 만들고 싶었던 것
+                  </h2>
+                  <p style={{ fontSize: 16, color: '#434653', margin: 0, lineHeight: 1.8 }}>
+                    매 학기마다 반복되는 고민이 있었습니다. <strong style={{ color: '#181c1e' }}>시간표는 있는데, 내 삶은 없다.</strong> 수업 시간을 채워 넣는 건 쉽지만, 그 사이사이에 공부 시간, 휴식, 운동, 수면을 어떻게 배치해야 할지는 언제나 막막했습니다.
+                  </p>
+                </div>
+
+                <div style={{ width: '100%', height: 1, background: '#ebeef1' }} />
+
+                <p style={{ fontSize: 16, color: '#434653', margin: 0, lineHeight: 1.8 }}>
+                  <strong style={{ color: '#1a4db2' }}>SKEMA</strong>는 그리스어 <em>σχῆμα</em>에서 온 말로, 단순한 '계획표'를 넘어 <strong style={{ color: '#181c1e' }}>삶의 체계</strong>를 의미합니다. 우리는 AI가 단순히 일정을 등록하는 도구가 아닌, 사용자의 수면 패턴·시험 일정·생활 리듬을 이해하고 스스로 최적의 구조를 제안해 주는 동반자가 되길 원했습니다.
+                </p>
+
+                <p style={{ fontSize: 16, color: '#434653', margin: 0, lineHeight: 1.8 }}>
+                  "내일 3시에 팀 미팅 추가해줘"라고 말하는 것만으로 시간표가 완성되고, AI가 남은 빈 시간에 학습 블록과 휴식을 배치해 주는 세상. 그것이 SKEMA가 꿈꾸는 일상입니다.
+                </p>
+
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 4 }}>
+                  {['AI 자연어 처리', '수면 패턴 반영', '시험 일정 관리', '스마트 공유'].map((tag) => (
+                    <span key={tag} style={{ padding: '6px 14px', background: '#ebeef1', borderRadius: 9999, fontSize: 12, fontWeight: 600, color: '#434653', fontFamily: "'Inter', sans-serif" }}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ===== Features Section ===== */}
         <section id="features" style={{ maxWidth: 1280, margin: '0 auto', padding: '80px 24px' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
