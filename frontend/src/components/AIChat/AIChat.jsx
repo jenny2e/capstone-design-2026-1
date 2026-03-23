@@ -45,7 +45,11 @@ export default function AIChat({ onScheduleChange }) {
   const handleKey = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      send();
+      const val = input.trim();
+      if (!val || loading) return;
+      setInput('');
+      if (textareaRef.current) textareaRef.current.value = '';
+      send(val);
     }
   };
 

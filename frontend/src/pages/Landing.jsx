@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const MOCK_SCHEDULES = {
@@ -15,6 +16,42 @@ const MOCK_SCHEDULES = {
 
 export default function Landing() {
   const navigate = useNavigate();
+  const [activeSection, setActiveSection] = useState('');
+
+  useEffect(() => {
+    const sections = ['preview', 'about', 'features'];
+    const observers = sections.map((id) => {
+      const el = document.getElementById(id);
+      if (!el) return null;
+      const observer = new IntersectionObserver(
+        ([entry]) => { if (entry.isIntersecting) setActiveSection(id); },
+        { rootMargin: '-40% 0px -50% 0px' }
+      );
+      observer.observe(el);
+      return observer;
+    });
+    return () => observers.forEach((o) => o?.disconnect());
+  }, []);
+
+  const navLink = (id, label) => (
+    <a
+      href={`#${id}`}
+      onClick={() => setActiveSection(id)}
+      style={{
+        color: activeSection === id ? '#1a4db2' : '#434653',
+        fontWeight: activeSection === id ? 700 : 500,
+        fontSize: 14,
+        textDecoration: 'none',
+        borderBottom: activeSection === id ? '2px solid #1a4db2' : '2px solid transparent',
+        paddingBottom: 2,
+        transition: 'all 0.15s',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.color = '#1a4db2'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.color = activeSection === id ? '#1a4db2' : '#434653'; }}
+    >
+      {label}
+    </a>
+  );
 
   return (
     <div style={{ minHeight: '100vh', background: '#f7fafd', fontFamily: "'Inter', sans-serif" }}>
@@ -31,17 +68,9 @@ export default function Landing() {
             SKEMA
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-            <a href="#features" style={{ color: '#1a4db2', fontWeight: 700, fontSize: 14, textDecoration: 'none', borderBottom: '2px solid #1a4db2', paddingBottom: 2 }}>기능</a>
-            <a href="#preview" style={{ color: '#434653', fontWeight: 500, fontSize: 14, textDecoration: 'none', transition: 'color 0.15s' }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#1a4db2'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = '#434653'; }}>
-              미리보기
-            </a>
-            <a href="#footer" style={{ color: '#434653', fontWeight: 500, fontSize: 14, textDecoration: 'none', transition: 'color 0.15s' }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#1a4db2'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = '#434653'; }}>
-              소개
-            </a>
+            {navLink('features', '기능')}
+            {navLink('preview', '미리보기')}
+            {navLink('about', '소개')}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button
