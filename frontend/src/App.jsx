@@ -60,7 +60,7 @@ export default function App() {
           fontFamily: "'Inter', sans-serif",
         }}
       >
-        <div style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 20, color: '#181c1e' }}>AI 시간표</div>
+        <div style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 20, color: '#181c1e' }}>SKEMA</div>
         <div style={{ color: '#747684' }}>로딩 중...</div>
       </div>
     );

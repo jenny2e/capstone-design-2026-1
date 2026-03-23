@@ -72,7 +72,7 @@ export default function Login({ onLogin }) {
         alignSelf: 'center',
       }}>
         <div style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 18, color: '#181c1e', letterSpacing: '-0.3px' }}>
-          AI 시간표
+          SKEMA
         </div>
       </nav>
 
@@ -136,7 +136,7 @@ export default function Login({ onLogin }) {
                 {mode === 'login' ? '로그인' : '계정 만들기'}
               </h2>
               <p style={{ color: '#434653', fontSize: 14, margin: 0, lineHeight: 1.5 }}>
-                {mode === 'login' ? 'AI 시간표에 오신 걸 환영합니다.' : '스마트한 시간 관리를 시작하세요.'}
+                {mode === 'login' ? 'SKEMA에 오신 걸 환영합니다.' : '스마트한 시간 관리를 시작하세요.'}
               </p>
             </div>
 

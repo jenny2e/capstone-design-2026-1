@@ -7,7 +7,7 @@ const STEPS = [
   { id: 'occupation', title: '직업을 알려주세요', subtitle: '맞춤 일정 관리를 위해 직업 정보가 필요합니다', icon: 'badge' },
   { id: 'sleep', title: '수면 시간을 설정해주세요', subtitle: 'AI가 학습 일정 생성 시 수면 시간을 제외합니다', icon: 'bedtime' },
   { id: 'exam', title: '시험 일정을 입력해주세요', subtitle: 'AI가 시험에 맞춰 학습 계획을 세웁니다 (선택사항)', icon: 'edit_calendar' },
-  { id: 'done', title: '설정 완료!', subtitle: 'AI 시간표를 시작할 준비가 되었습니다', icon: 'task_alt' },
+  { id: 'done', title: '설정 완료!', subtitle: 'SKEMA를 시작할 준비가 되었습니다', icon: 'task_alt' },
 ];
 
 export default function Onboarding({ onComplete }) {
@@ -115,7 +115,7 @@ export default function Onboarding({ onComplete }) {
 
       {/* Brand */}
       <div style={{ marginBottom: 24, textAlign: 'center', position: 'relative', zIndex: 1 }}>
-        <div style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 20, color: '#181c1e', letterSpacing: '-0.2px' }}>AI 시간표</div>
+        <div style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 20, color: '#181c1e', letterSpacing: '-0.2px' }}>SKEMA</div>
         <div style={{ fontSize: 12, color: '#747684', marginTop: 2 }}>초기 설정</div>
       </div>
 

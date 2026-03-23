@@ -128,7 +128,7 @@ export default function Home({ user, profile, onLogout, onProfileUpdate }) {
             <span className="material-symbols-outlined" style={{ color: '#fff', fontSize: 18 }}>calendar_month</span>
           </div>
           <div>
-            <div style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 16, color: '#181c1e', lineHeight: 1.1, letterSpacing: '-0.2px' }}>AI 시간표</div>
+            <div style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 16, color: '#181c1e', lineHeight: 1.1, letterSpacing: '-0.2px' }}>SKEMA</div>
             <div style={{ fontSize: 10, color: '#747684', fontWeight: 500 }}>Smart Schedule Manager</div>
           </div>
         </div>

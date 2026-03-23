@@ -28,7 +28,7 @@ export default function Landing() {
       }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 20, color: '#181c1e', letterSpacing: '-0.4px' }}>
-            AI 시간표
+            SKEMA
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
             <a href="#features" style={{ color: '#1a4db2', fontWeight: 700, fontSize: 14, textDecoration: 'none', borderBottom: '2px solid #1a4db2', paddingBottom: 2 }}>기능</a>
@@ -229,7 +229,7 @@ export default function Landing() {
         {/* ===== Features Section ===== */}
         <section id="features" style={{ maxWidth: 1280, margin: '0 auto', padding: '80px 24px' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 36, color: '#181c1e', margin: '0 0 12px', letterSpacing: '-0.5px' }}>왜 AI 시간표인가요?</h2>
+            <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 36, color: '#181c1e', margin: '0 0 12px', letterSpacing: '-0.5px' }}>왜 SKEMA인가요?</h2>
             <p style={{ fontSize: 16, color: '#434653', margin: 0 }}>복잡한 일정 관리를 AI가 대신 해드립니다.</p>
           </div>
 
@@ -281,7 +281,7 @@ export default function Landing() {
               지금 바로 시작해보세요
             </h2>
             <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.75)', margin: '0 0 36px', lineHeight: 1.65 }}>
-              무료로 계정을 만들고 AI 시간표의 모든 기능을 이용하세요.
+              무료로 계정을 만들고 SKEMA의 모든 기능을 이용하세요.
             </p>
             <button
               onClick={() => navigate('/login?mode=register')}
@@ -299,9 +299,9 @@ export default function Landing() {
       <footer id="footer" style={{ background: '#ebeef1', padding: '48px 24px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 32 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 16, color: '#181c1e' }}>AI 시간표</div>
+            <div style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 16, color: '#181c1e' }}>SKEMA</div>
             <p style={{ fontSize: 13, color: '#434653', margin: 0, lineHeight: 1.6 }}>AI로 설계하는 나만의 하루.</p>
-            <p style={{ fontSize: 12, color: '#747684', margin: 0 }}>© 2026 AI 시간표. All rights reserved.</p>
+            <p style={{ fontSize: 12, color: '#747684', margin: 0 }}>© 2026 SKEMA. All rights reserved.</p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#181c1e', fontFamily: "'Inter', sans-serif" }}>서비스</span>
