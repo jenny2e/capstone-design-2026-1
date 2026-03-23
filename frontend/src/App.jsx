@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Onboarding from './pages/Onboarding';
 import Share from './pages/Share';
@@ -65,14 +66,15 @@ export default function App() {
     );
   }
 
-  // Not logged in → only /login and /share routes
+  // Not logged in → landing, login, share routes
   if (!user) {
     return (
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Landing />} />
           <Route path="/share/:token" element={<Share />} />
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     );

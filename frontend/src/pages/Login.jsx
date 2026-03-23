@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { login, register } from '../services/api';
 
 export default function Login({ onLogin }) {
-  const [mode, setMode] = useState('login');
+  const [searchParams] = useSearchParams();
+  const [mode, setMode] = useState(searchParams.get('mode') === 'register' ? 'register' : 'login');
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
