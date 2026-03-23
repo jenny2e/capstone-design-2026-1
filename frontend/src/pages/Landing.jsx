@@ -131,6 +131,56 @@ export default function Landing() {
           </div>
         </section>
 
+
+
+        {/* ===== Features Section ===== */}
+        <section id="features" style={{ maxWidth: 1280, margin: '0 auto', padding: '80px 24px' }}>
+          <div style={{ textAlign: 'center', marginBottom: 56 }}>
+            <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 36, color: '#181c1e', margin: '0 0 12px', letterSpacing: '-0.5px' }}>왜 SKEMA인가요?</h2>
+            <p style={{ fontSize: 16, color: '#434653', margin: 0 }}>복잡한 일정 관리를 AI가 대신 해드립니다.</p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+            {/* Feature 1: large */}
+            <div style={{ gridColumn: 'span 2', background: '#ebeef1', padding: 40, borderRadius: 20, position: 'relative', overflow: 'hidden', minHeight: 280, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+              <div style={{ position: 'absolute', top: 24, right: 24, width: 80, height: 80, borderRadius: 20, background: 'rgba(26,77,178,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span className="material-symbols-outlined" style={{ color: '#1a4db2', fontSize: 40 }}>psychology</span>
+              </div>
+              <div>
+                <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 26, color: '#181c1e', margin: '0 0 10px' }}>예측형 스케줄링</h3>
+                <p style={{ fontSize: 15, color: '#434653', margin: 0, maxWidth: 440, lineHeight: 1.65 }}>AI가 생활 패턴, 에너지 레벨, 집중력 사이클을 학습해 실제로 지킬 수 있는 시간표를 만들어 드립니다.</p>
+              </div>
+            </div>
+
+            {/* Feature 2 */}
+            <div style={{ background: '#1a4db2', padding: 36, borderRadius: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 280 }}>
+              <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 40, fontVariationSettings: "'wght' 200" }}>chat</span>
+              <div>
+                <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 22, color: '#fff', margin: '0 0 8px' }}>자연어 입력</h3>
+                <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 14, margin: 0, lineHeight: 1.6 }}>"내일 3시에 팀 미팅 추가해줘" — 말하듯 입력하면 AI가 알아서 등록합니다.</p>
+              </div>
+            </div>
+
+            {/* Feature 3 */}
+            <div style={{ background: '#fff', padding: 36, borderRadius: 20, border: '1px solid rgba(195,198,213,0.3)', boxShadow: '0 2px 12px rgba(24,28,30,0.06)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 200 }}>
+              <span className="material-symbols-outlined" style={{ color: '#1a4db2', fontSize: 36 }}>share</span>
+              <div>
+                <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 18, color: '#181c1e', margin: '12px 0 6px' }}>링크로 공유</h3>
+                <p style={{ fontSize: 14, color: '#434653', margin: 0, lineHeight: 1.6 }}>내 시간표를 링크 하나로 친구·팀원과 공유하세요.</p>
+              </div>
+            </div>
+
+            {/* Feature 4 */}
+            <div style={{ background: '#fff', padding: 36, borderRadius: 20, border: '1px solid rgba(195,198,213,0.3)', boxShadow: '0 2px 12px rgba(24,28,30,0.06)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 200 }}>
+              <span className="material-symbols-outlined" style={{ color: '#1a4db2', fontSize: 36 }}>bedtime</span>
+              <div>
+                <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 18, color: '#181c1e', margin: '12px 0 6px' }}>수면 패턴 반영</h3>
+                <p style={{ fontSize: 14, color: '#434653', margin: 0, lineHeight: 1.6 }}>취침·기상 시간을 설정하면 AI가 수면을 침범하지 않는 일정을 만듭니다.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ===== Timetable Preview Section ===== */}
         <section id="preview" style={{ background: '#f1f4f7', padding: '80px 24px' }}>
           <div style={{ maxWidth: 1280, margin: '0 auto' }}>
@@ -332,54 +382,6 @@ export default function Landing() {
                     </span>
                   ))}
                 </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ===== Features Section ===== */}
-        <section id="features" style={{ maxWidth: 1280, margin: '0 auto', padding: '80px 24px' }}>
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <h2 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 36, color: '#181c1e', margin: '0 0 12px', letterSpacing: '-0.5px' }}>왜 SKEMA인가요?</h2>
-            <p style={{ fontSize: 16, color: '#434653', margin: 0 }}>복잡한 일정 관리를 AI가 대신 해드립니다.</p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-            {/* Feature 1: large */}
-            <div style={{ gridColumn: 'span 2', background: '#ebeef1', padding: 40, borderRadius: 20, position: 'relative', overflow: 'hidden', minHeight: 280, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-              <div style={{ position: 'absolute', top: 24, right: 24, width: 80, height: 80, borderRadius: 20, background: 'rgba(26,77,178,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span className="material-symbols-outlined" style={{ color: '#1a4db2', fontSize: 40 }}>psychology</span>
-              </div>
-              <div>
-                <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 26, color: '#181c1e', margin: '0 0 10px' }}>예측형 스케줄링</h3>
-                <p style={{ fontSize: 15, color: '#434653', margin: 0, maxWidth: 440, lineHeight: 1.65 }}>AI가 생활 패턴, 에너지 레벨, 집중력 사이클을 학습해 실제로 지킬 수 있는 시간표를 만들어 드립니다.</p>
-              </div>
-            </div>
-
-            {/* Feature 2 */}
-            <div style={{ background: '#1a4db2', padding: 36, borderRadius: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 280 }}>
-              <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 40, fontVariationSettings: "'wght' 200" }}>chat</span>
-              <div>
-                <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 22, color: '#fff', margin: '0 0 8px' }}>자연어 입력</h3>
-                <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 14, margin: 0, lineHeight: 1.6 }}>"내일 3시에 팀 미팅 추가해줘" — 말하듯 입력하면 AI가 알아서 등록합니다.</p>
-              </div>
-            </div>
-
-            {/* Feature 3 */}
-            <div style={{ background: '#fff', padding: 36, borderRadius: 20, border: '1px solid rgba(195,198,213,0.3)', boxShadow: '0 2px 12px rgba(24,28,30,0.06)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 200 }}>
-              <span className="material-symbols-outlined" style={{ color: '#1a4db2', fontSize: 36 }}>share</span>
-              <div>
-                <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 18, color: '#181c1e', margin: '12px 0 6px' }}>링크로 공유</h3>
-                <p style={{ fontSize: 14, color: '#434653', margin: 0, lineHeight: 1.6 }}>내 시간표를 링크 하나로 친구·팀원과 공유하세요.</p>
-              </div>
-            </div>
-
-            {/* Feature 4 */}
-            <div style={{ background: '#fff', padding: 36, borderRadius: 20, border: '1px solid rgba(195,198,213,0.3)', boxShadow: '0 2px 12px rgba(24,28,30,0.06)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 200 }}>
-              <span className="material-symbols-outlined" style={{ color: '#1a4db2', fontSize: 36 }}>bedtime</span>
-              <div>
-                <h3 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 18, color: '#181c1e', margin: '12px 0 6px' }}>수면 패턴 반영</h3>
-                <p style={{ fontSize: 14, color: '#434653', margin: 0, lineHeight: 1.6 }}>취침·기상 시간을 설정하면 AI가 수면을 침범하지 않는 일정을 만듭니다.</p>
               </div>
             </div>
           </div>
