@@ -17,7 +17,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Chronos AI",
+  title: "SKEMA",
   description: "AI로 관리하는 스마트 시간표",
 };
 

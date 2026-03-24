@@ -84,7 +84,7 @@ export default function LoginPage() {
                 </span>
               </div>
               <span className="font-bold text-lg font-headline" style={{ color: '#181c1e' }}>
-                Chronos AI
+                SKEMA
               </span>
             </Link>
             <Link
@@ -159,7 +159,7 @@ export default function LoginPage() {
                 로그인
               </h1>
               <p className="text-sm" style={{ color: '#434653' }}>
-                Chronos AI에 오신 것을 환영합니다
+                SKEMA에 오신 것을 환영합니다
               </p>
             </div>
 
@@ -257,7 +257,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <footer className="py-6 px-6 text-center text-xs" style={{ background: '#ebeef1', color: '#434653' }}>
-          © 2025 Chronos AI. AI 기반 일정 관리 서비스
+          © 2026 SKEMA. AI 기반 일정 관리 서비스
         </footer>
       </div>
     </>
