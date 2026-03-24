@@ -134,7 +134,31 @@ export default function Timetable({ schedules = [], onDelete, onEdit }) {
   const conflictCount = schedules.filter((s) => hasConflict(s, schedules)).length;
 
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
+      {schedules.length === 0 && (
+        <div style={{
+          position: 'absolute',
+          top: 44,
+          left: 48,
+          right: 0,
+          height: `${totalHeight}px`,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 10,
+          pointerEvents: 'none',
+          zIndex: 2,
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 52, color: '#c3c6d5' }}>event_note</span>
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#747684', fontFamily: "'Manrope', sans-serif" }}>
+            아직 등록된 강의가 없어요
+          </div>
+          <div style={{ fontSize: 12, color: '#b3c5ff', textAlign: 'center', maxWidth: 240, lineHeight: 1.6, fontFamily: "'Inter', sans-serif" }}>
+            상단의 '강의 추가' 버튼을 누르거나<br />AI 어시스턴트에게 말씀해 보세요
+          </div>
+        </div>
+      )}
       {conflictCount > 0 && (
         <div style={{
           padding: '9px 18px',
