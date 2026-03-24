@@ -1,305 +1,404 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+
+const NAV_ITEMS = [
+  { label: '소개', href: '#intro' },
+  { label: '미리보기', href: '#preview' },
+  { label: '기능', href: '#features' },
+];
 
 export default function LandingPage() {
   const navRef = useRef<HTMLElement>(null);
+  const [activeSection, setActiveSection] = useState<string>('');
 
+  // Scroll-spy: update active nav item based on visible section
   useEffect(() => {
-    const handleScroll = () => {
-      if (navRef.current) {
-        if (window.scrollY > 20) {
-          navRef.current.style.background = 'rgba(247,250,253,0.92)';
-          navRef.current.style.boxShadow = '0 1px 12px rgba(26,77,178,0.08)';
-        } else {
-          navRef.current.style.background = 'transparent';
-          navRef.current.style.boxShadow = 'none';
-        }
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
+    const sectionIds = NAV_ITEMS.map((n) => n.href.slice(1));
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('active');
+            setActiveSection(entry.target.id);
           }
         });
       },
-      { threshold: 0.12 }
+      { threshold: 0.4 }
     );
-    document.querySelectorAll('.reveal-on-scroll').forEach((el) => observer.observe(el));
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
     return () => observer.disconnect();
   }, []);
+
+  // Reveal on scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add('active');
+        });
+      },
+      { threshold: 0.1 }
+    );
+    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  // Navbar background on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!navRef.current) return;
+      navRef.current.style.background =
+        window.scrollY > 30 ? 'rgba(247,250,253,0.96)' : 'transparent';
+      navRef.current.style.boxShadow =
+        window.scrollY > 30 ? '0 1px 16px rgba(26,77,178,0.07)' : 'none';
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Smooth scroll on nav click
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    const target = document.querySelector(href);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <>
       <style>{`
         .font-headline { font-family: var(--font-manrope), Manrope, sans-serif; }
-        .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; font-size: 24px; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased; font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
-        .mesh-gradient { background: linear-gradient(-45deg,#f7fafd,#eef1f4,#dae1ff,#f7fafd); background-size:400% 400%; animation:meshFlow 20s ease infinite; }
+        .ms {
+          font-family: 'Material Symbols Outlined';
+          font-weight: normal; font-style: normal;
+          font-size: 24px; line-height: 1;
+          letter-spacing: normal; text-transform: none;
+          display: inline-block; white-space: nowrap;
+          direction: ltr; -webkit-font-smoothing: antialiased;
+          font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;
+        }
+        /* mesh hero */
+        .mesh {
+          background: linear-gradient(-45deg,#f7fafd,#eef1f4,#dae1ff,#f7fafd);
+          background-size: 400% 400%;
+          animation: meshFlow 18s ease infinite;
+        }
         @keyframes meshFlow { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-        .animate-fade-up{animation:fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards}
-        .animate-float{animation:float 6s ease-in-out infinite}
-        .stagger-1{animation-delay:0.1s;opacity:0} .stagger-2{animation-delay:0.2s;opacity:0} .stagger-3{animation-delay:0.3s;opacity:0} .stagger-4{animation-delay:0.4s;opacity:0}
-        .reveal-on-scroll{opacity:0;transform:scale(0.95) translateY(20px);transition:all 0.8s cubic-bezier(0.16,1,0.3,1)}
-        .reveal-on-scroll.active{opacity:1;transform:scale(1) translateY(0)}
+        /* fade-up entrance */
+        @keyframes fadeUp {
+          from { opacity:0; transform:translateY(28px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+        .fu  { animation: fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) both; }
+        .d1  { animation-delay: 0.1s; }
+        .d2  { animation-delay: 0.22s; }
+        .d3  { animation-delay: 0.36s; }
+        .d4  { animation-delay: 0.50s; }
+        /* scroll reveal */
+        .reveal {
+          opacity:0; transform:translateY(24px);
+          transition: opacity 0.75s cubic-bezier(0.16,1,0.3,1),
+                      transform 0.75s cubic-bezier(0.16,1,0.3,1);
+        }
+        .reveal.active { opacity:1; transform:translateY(0); }
+        .reveal.d-1 { transition-delay: 0.05s; }
+        .reveal.d-2 { transition-delay: 0.15s; }
+        .reveal.d-3 { transition-delay: 0.25s; }
+        /* float */
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        .float { animation: float 5s ease-in-out infinite; }
+        /* brand letter split */
+        .brand-letter {
+          display: inline-block;
+          transition: color 0.2s, transform 0.2s;
+        }
+        .brand-letter:hover { color: #3b66cc; transform: translateY(-3px); }
+        /* nav active indicator */
+        .nav-link-active {
+          color: #1a4db2 !important;
+          font-weight: 700;
+        }
+        .nav-link-active::after {
+          content: '';
+          display: block;
+          height: 2px;
+          background: #1a4db2;
+          border-radius: 2px;
+          margin-top: 2px;
+        }
       `}</style>
 
-      <div className="min-h-screen" style={{ background: '#f7fafd', color: '#181c1e' }}>
-        {/* Navbar */}
+      <div style={{ minHeight: '100vh', background: '#f7fafd', color: '#181c1e' }}>
+
+        {/* ── Navbar ── */}
         <nav
           ref={navRef}
-          className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-          style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+            backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+            transition: 'background 0.3s, box-shadow 0.3s',
+          }}
         >
-          <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ background: '#1a4db2' }}
-              >
-                <span className="material-symbols-outlined text-white" style={{ fontSize: '18px' }}>
-                  schedule
-                </span>
+          <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '0 24px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            {/* Logo */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#1a4db2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span className="ms" style={{ fontSize: '17px', color: '#fff', fontVariationSettings: "'FILL' 1" }}>schedule</span>
               </div>
-              <span className="font-bold text-lg font-headline" style={{ color: '#181c1e' }}>
-                Chronos AI
-              </span>
+              <span className="font-headline" style={{ fontWeight: 800, fontSize: '20px', color: '#181c1e', letterSpacing: '-0.3px' }}>SKEMA</span>
             </div>
 
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm font-medium transition-colors" style={{ color: '#434653' }}>
-                Features
-              </a>
-              <a href="#about" className="text-sm font-medium transition-colors" style={{ color: '#434653' }}>
-                About
-              </a>
+            {/* Nav Links */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }} className="hidden-mobile">
+              {NAV_ITEMS.map(({ label, href }) => {
+                const id = href.slice(1);
+                const isActive = activeSection === id;
+                return (
+                  <a
+                    key={href}
+                    href={href}
+                    onClick={(e) => handleNavClick(e, href)}
+                    className={isActive ? 'nav-link-active' : ''}
+                    style={{
+                      fontSize: '14px',
+                      fontWeight: isActive ? 700 : 500,
+                      color: isActive ? '#1a4db2' : '#434653',
+                      textDecoration: 'none',
+                      cursor: 'pointer',
+                      transition: 'color 0.2s',
+                    }}
+                  >
+                    {label}
+                    {isActive && (
+                      <div style={{ height: '2px', background: '#1a4db2', borderRadius: '2px', marginTop: '2px' }} />
+                    )}
+                  </a>
+                );
+              })}
             </div>
 
-            <div className="flex items-center gap-3">
-              <Link
-                href="/login"
-                className="text-sm font-medium px-4 py-2 rounded-full transition-all"
-                style={{ color: '#1a4db2' }}
-              >
+            {/* CTA */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Link href="/login" style={{ fontSize: '14px', fontWeight: 500, color: '#1a4db2', padding: '8px 16px', borderRadius: '999px', textDecoration: 'none', transition: 'background 0.2s' }}>
                 로그인
               </Link>
-              <Link
-                href="/register"
-                className="text-sm font-bold px-5 py-2 rounded-full transition-all hover:opacity-90"
-                style={{ background: '#1a4db2', color: '#fff' }}
-              >
+              <Link href="/register" style={{ fontSize: '14px', fontWeight: 700, color: '#fff', background: '#1a4db2', padding: '8px 20px', borderRadius: '999px', textDecoration: 'none', boxShadow: '0 4px 14px rgba(26,77,178,0.25)', transition: 'opacity 0.2s, transform 0.2s' }}>
                 시작하기
               </Link>
             </div>
           </div>
         </nav>
 
-        {/* Hero Section */}
-        <section className="mesh-gradient min-h-screen flex items-center justify-center px-6 pt-16">
-          <div className="max-w-4xl mx-auto text-center">
-            <div
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 animate-fade-up stagger-1"
-              style={{ background: '#c3d0ff', color: '#1a4db2' }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                auto_awesome
-              </span>
-              <span className="text-sm font-semibold">AI-Powered Efficiency</span>
+        {/* ── Hero ── */}
+        <section className="mesh" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: '80px', paddingBottom: '40px', paddingLeft: '24px', paddingRight: '24px' }}>
+          <div style={{ maxWidth: '760px', margin: '0 auto', textAlign: 'center' }}>
+            <div className="fu d1" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#c3d0ff', color: '#1a4db2', borderRadius: '999px', padding: '6px 16px', marginBottom: '28px', fontSize: '13px', fontWeight: 700 }}>
+              <span className="ms" style={{ fontSize: '15px', fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+              AI 기반 스마트 시간표 관리
             </div>
 
-            <h1
-              className="font-headline animate-fade-up stagger-2 mb-6"
-              style={{
-                fontSize: 'clamp(3rem, 8vw, 5.5rem)',
-                fontWeight: 800,
-                lineHeight: 1.1,
-                color: '#181c1e',
-              }}
-            >
-              AI로 혁신하는
+            <h1 className="font-headline fu d2" style={{ fontSize: 'clamp(2.8rem,8vw,5.2rem)', fontWeight: 800, lineHeight: 1.1, color: '#181c1e', marginBottom: '24px', letterSpacing: '-1px' }}>
+              당신의 시간을
               <br />
-              <span style={{ color: '#1a4db2' }}>나만의 시간표</span>
+              <span style={{ color: '#1a4db2' }}>설계하세요</span>
             </h1>
 
-            <p
-              className="text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-up stagger-3"
-              style={{ color: '#434653' }}
-            >
-              자연어로 일정을 추가하고, AI가 최적의 시간표를 설계해 드립니다.
-              수업, 시험, 자율학습까지 한 곳에서 스마트하게 관리하세요.
+            <p className="fu d3" style={{ fontSize: '18px', color: '#434653', lineHeight: 1.75, maxWidth: '520px', margin: '0 auto 36px', fontWeight: 400 }}>
+              자연어로 일정을 입력하면 AI가 최적의 시간표를 완성합니다.
+              수업, 시험, 자율학습까지 한 곳에서 관리하세요.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-up stagger-4">
-              <Link
-                href="/register"
-                className="px-8 py-4 rounded-full font-bold text-base transition-all hover:scale-105 hover:opacity-90"
-                style={{
-                  background: '#1a4db2',
-                  color: '#fff',
-                  boxShadow: '0 8px 32px rgba(26,77,178,0.25)',
-                }}
-              >
+            <div className="fu d4" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center' }}>
+              <Link href="/register" style={{ background: '#1a4db2', color: '#fff', padding: '14px 32px', borderRadius: '999px', fontWeight: 700, fontSize: '16px', textDecoration: 'none', boxShadow: '0 8px 28px rgba(26,77,178,0.28)', transition: 'transform 0.2s, opacity 0.2s' }}>
                 무료로 시작하기
               </Link>
-              <Link
-                href="/login"
-                className="px-8 py-4 rounded-full font-bold text-base transition-all hover:scale-105"
-                style={{
-                  background: 'rgba(255,255,255,0.85)',
-                  color: '#1a4db2',
-                  border: '1.5px solid #c3d0ff',
-                }}
-              >
-                로그인
-              </Link>
+              <a href="#intro" onClick={(e) => handleNavClick(e, '#intro')} style={{ background: 'rgba(255,255,255,0.85)', color: '#1a4db2', padding: '14px 32px', borderRadius: '999px', fontWeight: 700, fontSize: '16px', textDecoration: 'none', border: '1.5px solid #c3d0ff', cursor: 'pointer', transition: 'transform 0.2s' }}>
+                더 알아보기
+              </a>
+            </div>
+
+            {/* Scroll hint */}
+            <div style={{ marginTop: '56px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', opacity: 0.4 }}>
+              <span style={{ fontSize: '12px', color: '#434653', letterSpacing: '1px' }}>스크롤</span>
+              <span className="ms" style={{ fontSize: '20px', color: '#434653', animation: 'float 2s ease-in-out infinite' }}>keyboard_arrow_down</span>
             </div>
           </div>
         </section>
 
-        {/* Dashboard Preview Section */}
-        <section id="features" className="py-24 px-6" style={{ background: '#f1f4f7' }}>
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16 reveal-on-scroll">
-              <h2
-                className="font-headline text-3xl md:text-4xl font-bold mb-4"
-                style={{ color: '#181c1e' }}
-              >
-                한눈에 보는 나의 일정
-              </h2>
-              <p style={{ color: '#434653' }}>직관적인 대시보드로 모든 일정을 한 번에 파악하세요</p>
+        {/* ── 소개 (Brand Story) ── */}
+        <section id="intro" style={{ padding: '100px 24px', background: '#fff' }}>
+          <div style={{ maxWidth: '1120px', margin: '0 auto' }}>
+
+            {/* Section label */}
+            <div className="reveal" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '48px' }}>
+              <div style={{ width: '32px', height: '2px', background: '#1a4db2', borderRadius: '2px' }} />
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#1a4db2', letterSpacing: '2px', textTransform: 'uppercase' }}>소개</span>
             </div>
 
-            <div className="grid grid-cols-12 gap-4 reveal-on-scroll animate-float">
-              {/* Left Sidebar */}
-              <div className="col-span-12 lg:col-span-4 flex flex-col gap-4">
-                {/* Upcoming Events Card */}
+            {/* Brand name big */}
+            <div className="reveal" style={{ marginBottom: '20px' }}>
+              <div className="font-headline" style={{ fontSize: 'clamp(3.5rem,10vw,8rem)', fontWeight: 800, lineHeight: 1, color: '#181c1e', letterSpacing: '-3px', userSelect: 'none' }}>
+                {'SKEMA'.split('').map((ch, i) => (
+                  <span key={i} className="brand-letter">{ch}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Etymology */}
+            <div className="reveal d-1" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', background: '#f1f4f7', borderRadius: '12px', padding: '10px 18px', marginBottom: '48px' }}>
+              <span className="ms" style={{ fontSize: '18px', color: '#1a4db2', fontVariationSettings: "'FILL' 1" }}>menu_book</span>
+              <span style={{ fontSize: '14px', color: '#434653' }}>
+                <b style={{ color: '#181c1e' }}>Scheme</b>에서 영감을 받아 — &ldquo;체계적인 계획&rdquo;을 의미합니다
+              </span>
+            </div>
+
+            {/* 3-column intro cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+              {[
+                {
+                  icon: 'architecture',
+                  title: '설계하다',
+                  en: 'Scheme',
+                  desc: 'SKEMA의 이름은 라틴어 Schema(도식, 구조)와 영어 Scheme(계획, 체계)에서 비롯되었습니다. 하루를 단순히 기록하는 것이 아닌, 능동적으로 설계한다는 철학을 담았습니다.',
+                  bg: '#f1f4f7',
+                  iconBg: '#ebeef1',
+                  iconColor: '#1a4db2',
+                },
+                {
+                  icon: 'smart_toy',
+                  title: 'AI와 함께',
+                  en: 'Powered by AI',
+                  desc: '대화하듯 일정을 말하면 AI가 이해하고 배치합니다. 복잡한 UI 없이 자연어 한 문장으로 시간표를 완성하세요. SKEMA의 AI는 당신의 패턴을 기억하고 점점 더 똑똑해집니다.',
+                  bg: '#1a4db2',
+                  iconBg: 'rgba(255,255,255,0.15)',
+                  iconColor: '#fff',
+                  dark: true,
+                },
+                {
+                  icon: 'lightbulb',
+                  title: '당신을 위한',
+                  en: 'Made for You',
+                  desc: '학생, 직장인, 프리랜서 — 누구에게나 맞는 시간 관리가 필요합니다. SKEMA는 개인의 생활 패턴과 우선순위에 맞춰 시간표를 자동으로 최적화합니다.',
+                  bg: '#f1f4f7',
+                  iconBg: '#ffdcc6',
+                  iconColor: '#844000',
+                },
+              ].map((card, i) => (
                 <div
-                  className="rounded-2xl p-5"
-                  style={{ background: '#fff', border: '1px solid #ebeef1', boxShadow: '0 2px 12px rgba(26,77,178,0.06)' }}
+                  key={i}
+                  className={`reveal d-${i + 1}`}
+                  style={{
+                    background: card.bg,
+                    borderRadius: '20px',
+                    padding: '36px 32px',
+                    color: card.dark ? '#fff' : '#181c1e',
+                    transition: 'transform 0.25s',
+                  }}
                 >
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="material-symbols-outlined" style={{ color: '#1a4db2', fontSize: '20px' }}>
-                      event_upcoming
-                    </span>
-                    <span className="font-bold text-sm" style={{ color: '#181c1e' }}>다가오는 일정</span>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: card.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                    <span className="ms" style={{ color: card.iconColor, fontVariationSettings: "'FILL' 1" }}>{card.icon}</span>
+                  </div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '1.5px', opacity: 0.6, marginBottom: '8px', textTransform: 'uppercase' }}>{card.en}</div>
+                  <h3 className="font-headline" style={{ fontSize: '22px', fontWeight: 800, marginBottom: '14px' }}>{card.title}</h3>
+                  <p style={{ fontSize: '14px', lineHeight: 1.8, opacity: card.dark ? 0.88 : 1, color: card.dark ? '#fff' : '#434653' }}>{card.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── 미리보기 (Preview) ── */}
+        <section id="preview" style={{ padding: '100px 24px', background: '#f1f4f7' }}>
+          <div style={{ maxWidth: '1120px', margin: '0 auto' }}>
+
+            <div className="reveal" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <div style={{ width: '32px', height: '2px', background: '#1a4db2', borderRadius: '2px' }} />
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#1a4db2', letterSpacing: '2px', textTransform: 'uppercase' }}>미리보기</span>
+            </div>
+
+            <div className="reveal" style={{ marginBottom: '56px' }}>
+              <h2 className="font-headline" style={{ fontSize: 'clamp(1.8rem,4vw,2.8rem)', fontWeight: 800, color: '#181c1e', marginBottom: '12px' }}>
+                한눈에 보는 나의 일정
+              </h2>
+              <p style={{ fontSize: '16px', color: '#434653' }}>직관적인 대시보드로 모든 일정을 한 번에 파악하세요</p>
+            </div>
+
+            <div className="reveal float" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px' }}>
+
+              {/* Left Sidebar */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Upcoming */}
+                <div style={{ background: '#fff', borderRadius: '20px', padding: '24px', boxShadow: '0 2px 12px rgba(26,77,178,0.06)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                    <span className="ms" style={{ color: '#1a4db2', fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>event_upcoming</span>
+                    <span style={{ fontWeight: 700, fontSize: '14px', color: '#181c1e' }}>다가오는 일정</span>
                   </div>
                   {[
-                    { name: '수학 수업', time: '오전 9:00', color: '#c3d0ff' },
-                    { name: '영어 과제 제출', time: '오후 2:00', color: '#ffdcc6' },
-                    { name: '물리 시험 준비', time: '오후 5:00', color: '#c3d0ff' },
+                    { name: '알고리즘 수업', time: '09:00', tag: '오늘', tagBg: '#c3d0ff' },
+                    { name: '과제 제출 마감', time: '14:00', tag: '오늘', tagBg: '#ffdcc6' },
+                    { name: '스터디 그룹', time: '17:00', tag: '오늘', tagBg: '#c3d0ff' },
                   ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 py-2">
-                      <div className="w-2 h-2 rounded-full" style={{ background: '#1a4db2' }} />
-                      <div className="flex-1">
-                        <div className="text-sm font-medium" style={{ color: '#181c1e' }}>{item.name}</div>
-                        <div className="text-xs" style={{ color: '#434653' }}>{item.time}</div>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderBottom: i < 2 ? '1px solid #f1f4f7' : 'none' }}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '999px', background: '#1a4db2', flexShrink: 0 }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#181c1e' }}>{item.name}</div>
+                        <div style={{ fontSize: '11px', color: '#434653' }}>{item.time}</div>
                       </div>
-                      <span
-                        className="text-xs px-2 py-0.5 rounded-full font-medium"
-                        style={{ background: item.color, color: '#1a4db2' }}
-                      >
-                        오늘
-                      </span>
+                      <span style={{ fontSize: '11px', fontWeight: 700, background: item.tagBg, color: '#1a4db2', padding: '2px 8px', borderRadius: '999px' }}>{item.tag}</span>
                     </div>
                   ))}
                 </div>
 
-                {/* AI Insights Card */}
-                <div
-                  className="rounded-2xl p-5"
-                  style={{ background: '#1a4db2', color: '#fff' }}
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-                      psychology
-                    </span>
-                    <span className="font-bold text-sm">AI 인사이트</span>
+                {/* AI Card */}
+                <div style={{ background: '#1a4db2', borderRadius: '20px', padding: '24px', color: '#fff' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                    <span className="ms" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>psychology</span>
+                    <span style={{ fontWeight: 700, fontSize: '14px' }}>AI 인사이트</span>
                   </div>
-                  <p className="text-sm opacity-90 leading-relaxed">
-                    이번 주 공부 시간이 12% 증가했어요! 화요일 오후 빈 시간에 복습 세션을 추가해보는 건 어떨까요?
+                  <p style={{ fontSize: '13px', lineHeight: 1.7, opacity: 0.92 }}>
+                    이번 주 공부 시간이 12% 증가했어요! 화요일 오후 빈 시간에 복습 세션을 추가해보세요.
                   </p>
-                  <div
-                    className="mt-3 inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full"
-                    style={{ background: 'rgba(255,255,255,0.2)' }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>add</span>
+                  <div style={{ marginTop: '16px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.18)', borderRadius: '999px', padding: '6px 14px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                    <span className="ms" style={{ fontSize: '14px' }}>add</span>
                     일정 추가
                   </div>
                 </div>
               </div>
 
-              {/* Main Calendar */}
-              <div
-                className="col-span-12 lg:col-span-8 rounded-2xl p-5"
-                style={{ background: '#fff', border: '1px solid #ebeef1', boxShadow: '0 2px 12px rgba(26,77,178,0.06)' }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <span className="font-bold" style={{ color: '#181c1e' }}>이번 주 시간표</span>
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#434653', cursor: 'pointer' }}>
-                      chevron_left
-                    </span>
-                    <span className="text-sm font-medium" style={{ color: '#434653' }}>3월 4주</span>
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#434653', cursor: 'pointer' }}>
-                      chevron_right
-                    </span>
+              {/* Calendar */}
+              <div style={{ background: '#fff', borderRadius: '20px', padding: '24px', boxShadow: '0 2px 12px rgba(26,77,178,0.06)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <span style={{ fontWeight: 700, color: '#181c1e' }}>이번 주 시간표</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#434653', fontSize: '14px' }}>
+                    <span className="ms" style={{ fontSize: '18px', cursor: 'pointer' }}>chevron_left</span>
+                    <span style={{ fontWeight: 600 }}>3월 4주</span>
+                    <span className="ms" style={{ fontSize: '18px', cursor: 'pointer' }}>chevron_right</span>
                   </div>
                 </div>
 
-                {/* Days Header */}
-                <div className="grid grid-cols-6 gap-2 mb-3">
-                  {['월', '화', '수', '목', '금', '토'].map((day) => (
-                    <div key={day} className="text-center text-xs font-bold py-1" style={{ color: '#434653' }}>
-                      {day}
-                    </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: '8px', marginBottom: '10px' }}>
+                  {['월', '화', '수', '목', '금', '토'].map((d) => (
+                    <div key={d} style={{ textAlign: 'center', fontSize: '12px', fontWeight: 700, color: '#434653', padding: '4px 0' }}>{d}</div>
                   ))}
                 </div>
 
-                {/* Schedule Blocks */}
-                <div className="grid grid-cols-6 gap-2">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: '8px' }}>
                   {[
-                    [
-                      { label: '수학', time: '9:00', color: '#c3d0ff', textColor: '#1a4db2' },
-                      { label: '자율학습', time: '14:00', color: '#f1f4f7', textColor: '#434653' },
-                    ],
-                    [
-                      { label: '영어', time: '10:00', color: '#ffdcc6', textColor: '#8b4500' },
-                      { label: '물리', time: '15:00', color: '#c3d0ff', textColor: '#1a4db2' },
-                    ],
-                    [
-                      { label: '화학', time: '9:00', color: '#c3d0ff', textColor: '#1a4db2' },
-                      { label: '국어', time: '13:00', color: '#ffdcc6', textColor: '#8b4500' },
-                    ],
-                    [
-                      { label: '수학', time: '11:00', color: '#c3d0ff', textColor: '#1a4db2' },
-                      { label: '복습', time: '16:00', color: '#f1f4f7', textColor: '#434653' },
-                    ],
-                    [
-                      { label: '영어', time: '9:00', color: '#ffdcc6', textColor: '#8b4500' },
-                      { label: '시험준비', time: '14:00', color: '#c3d0ff', textColor: '#1a4db2' },
-                    ],
-                    [
-                      { label: '자유', time: '10:00', color: '#f1f4f7', textColor: '#434653' },
-                    ],
+                    [{ l: '수학', t: '9:00', c: '#c3d0ff', tc: '#1a4db2' }, { l: '자율학습', t: '14:00', c: '#f1f4f7', tc: '#434653' }],
+                    [{ l: '영어', t: '10:00', c: '#ffdcc6', tc: '#8b4500' }, { l: '물리', t: '15:00', c: '#c3d0ff', tc: '#1a4db2' }],
+                    [{ l: '화학', t: '9:00', c: '#c3d0ff', tc: '#1a4db2' }, { l: '국어', t: '13:00', c: '#ffdcc6', tc: '#8b4500' }],
+                    [{ l: '수학', t: '11:00', c: '#c3d0ff', tc: '#1a4db2' }, { l: '복습', t: '16:00', c: '#f1f4f7', tc: '#434653' }],
+                    [{ l: '영어', t: '9:00', c: '#ffdcc6', tc: '#8b4500' }, { l: '시험준비', t: '14:00', c: '#c3d0ff', tc: '#1a4db2' }],
+                    [{ l: '자유', t: '10:00', c: '#f1f4f7', tc: '#434653' }],
                   ].map((col, ci) => (
-                    <div key={ci} className="flex flex-col gap-2">
-                      {col.map((block, bi) => (
-                        <div
-                          key={bi}
-                          className="rounded-xl px-2 py-2 text-xs font-semibold"
-                          style={{ background: block.color, color: block.textColor }}
-                        >
-                          <div>{block.label}</div>
-                          <div className="opacity-70 font-normal mt-0.5">{block.time}</div>
+                    <div key={ci} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {col.map((b, bi) => (
+                        <div key={bi} style={{ background: b.c, color: b.tc, borderRadius: '10px', padding: '8px', fontSize: '12px', fontWeight: 600 }}>
+                          {b.l}
+                          <div style={{ fontSize: '10px', fontWeight: 400, opacity: 0.7, marginTop: '2px' }}>{b.t}</div>
                         </div>
                       ))}
                     </div>
@@ -310,157 +409,110 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Features Bento */}
-        <section className="py-24 px-6" style={{ background: '#f7fafd' }}>
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16 reveal-on-scroll">
-              <h2
-                className="font-headline text-3xl md:text-4xl font-bold mb-4"
-                style={{ color: '#181c1e' }}
-              >
+        {/* ── 기능 (Features) ── */}
+        <section id="features" style={{ padding: '100px 24px', background: '#f7fafd' }}>
+          <div style={{ maxWidth: '1120px', margin: '0 auto' }}>
+
+            <div className="reveal" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <div style={{ width: '32px', height: '2px', background: '#1a4db2', borderRadius: '2px' }} />
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#1a4db2', letterSpacing: '2px', textTransform: 'uppercase' }}>기능</span>
+            </div>
+
+            <div className="reveal" style={{ marginBottom: '56px' }}>
+              <h2 className="font-headline" style={{ fontSize: 'clamp(1.8rem,4vw,2.8rem)', fontWeight: 800, color: '#181c1e', marginBottom: '12px' }}>
                 더 스마트하게, 더 효율적으로
               </h2>
-              <p style={{ color: '#434653' }}>AI가 당신의 시간을 최적화합니다</p>
+              <p style={{ fontSize: '16px', color: '#434653' }}>AI가 당신의 시간을 최적화합니다</p>
             </div>
 
-            {/* Top 2-col bento */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 reveal-on-scroll">
-              <div
-                className="md:col-span-2 rounded-2xl p-8"
-                style={{ background: '#fff', border: '1px solid #ebeef1', boxShadow: '0 2px 12px rgba(26,77,178,0.06)' }}
-              >
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
-                  style={{ background: '#ebeef1' }}
-                >
-                  <span className="material-symbols-outlined" style={{ color: '#1a4db2' }}>
-                    psychology_alt
-                  </span>
+            {/* Bento top row */}
+            <div className="reveal" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div style={{ background: '#fff', borderRadius: '20px', padding: '36px', border: '1px solid #ebeef1', boxShadow: '0 2px 12px rgba(26,77,178,0.05)' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#ebeef1', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                  <span className="ms" style={{ color: '#1a4db2', fontVariationSettings: "'FILL' 1" }}>psychology_alt</span>
                 </div>
-                <h3 className="font-headline text-xl font-bold mb-2" style={{ color: '#181c1e' }}>
-                  예측형 스케줄링
-                </h3>
-                <p className="text-sm leading-relaxed" style={{ color: '#434653' }}>
-                  AI가 과거 패턴을 학습하여 최적의 공부 시간과 휴식 패턴을 예측하고 추천해드립니다.
-                  개인화된 시간 관리로 생산성을 극대화하세요.
+                <h3 className="font-headline" style={{ fontSize: '20px', fontWeight: 800, color: '#181c1e', marginBottom: '10px' }}>예측형 스케줄링</h3>
+                <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#434653' }}>
+                  AI가 과거 패턴을 학습하여 최적의 공부 시간과 휴식 패턴을 예측하고 추천합니다. 개인화된 시간 관리로 생산성을 극대화하세요.
                 </p>
               </div>
-
-              <div
-                className="rounded-2xl p-8 flex flex-col justify-between"
-                style={{ background: '#1a4db2', color: '#fff' }}
-              >
-                <div>
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
-                    style={{ background: 'rgba(255,255,255,0.15)' }}
-                  >
-                    <span className="material-symbols-outlined">sync</span>
-                  </div>
-                  <h3 className="font-headline text-xl font-bold mb-2">자동 동기화</h3>
-                  <p className="text-sm leading-relaxed opacity-90">
-                    모든 기기에서 실시간으로 동기화되어 언제 어디서나 최신 일정을 확인하세요.
-                  </p>
+              <div style={{ background: '#1a4db2', borderRadius: '20px', padding: '36px', color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                  <span className="ms" style={{ fontVariationSettings: "'FILL' 1" }}>sync</span>
                 </div>
-                <div
-                  className="mt-6 inline-flex items-center gap-2 text-sm font-semibold"
-                  style={{ color: '#c3d0ff' }}
-                >
-                  자세히 보기
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
+                <div>
+                  <h3 className="font-headline" style={{ fontSize: '20px', fontWeight: 800, marginBottom: '10px' }}>자동 동기화</h3>
+                  <p style={{ fontSize: '14px', lineHeight: 1.8, opacity: 0.9 }}>모든 기기에서 실시간으로 동기화되어 언제 어디서나 최신 일정을 확인하세요.</p>
                 </div>
               </div>
             </div>
 
-            {/* 3 feature cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 reveal-on-scroll">
+            {/* Feature cards bottom row */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
               {[
-                {
-                  icon: 'chat',
-                  title: 'AI 자연어 입력',
-                  desc: '"매주 월요일 오전 9시에 수학 수업 추가해줘"처럼 자연어로 일정을 관리하세요.',
-                  bg: '#ebeef1',
-                  iconColor: '#1a4db2',
-                },
-                {
-                  icon: 'calendar_view_week',
-                  title: '시각적 시간표',
-                  desc: '7일 그리드 형태의 직관적인 시간표로 한눈에 일정을 파악하고 관리하세요.',
-                  bg: '#ffdcc6',
-                  iconColor: '#8b4500',
-                },
-                {
-                  icon: 'quiz',
-                  title: '시험 일정 관리',
-                  desc: '다가오는 시험 일정을 등록하고, 남은 기간을 확인하며 효율적으로 준비하세요.',
-                  bg: '#c3d0ff',
-                  iconColor: '#1a4db2',
-                },
+                { icon: 'chat', title: 'AI 자연어 입력', desc: '"매주 월요일 오전 9시에 수학 수업 추가해줘"처럼 자연어로 일정을 관리하세요.', bg: '#ebeef1', iconBg: '#ebeef1', iconColor: '#1a4db2' },
+                { icon: 'calendar_view_week', title: '시각적 시간표', desc: '7일 그리드 형태의 직관적인 시간표로 한눈에 일정을 파악하고 관리하세요.', bg: '#fff', iconBg: '#ffdcc6', iconColor: '#8b4500' },
+                { icon: 'quiz', title: '시험 일정 관리', desc: '다가오는 시험 일정을 등록하고 남은 기간을 확인하며 효율적으로 준비하세요.', bg: '#fff', iconBg: '#c3d0ff', iconColor: '#1a4db2' },
               ].map((card, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl p-6 transition-all hover:-translate-y-1"
-                  style={{ background: '#fff', border: '1px solid #ebeef1', boxShadow: '0 2px 12px rgba(26,77,178,0.06)' }}
+                  className={`reveal d-${i + 1}`}
+                  style={{ background: card.bg, borderRadius: '20px', padding: '28px', border: '1px solid #ebeef1', boxShadow: '0 2px 10px rgba(26,77,178,0.05)', transition: 'transform 0.25s, box-shadow 0.25s' }}
                 >
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
-                    style={{ background: card.bg }}
-                  >
-                    <span className="material-symbols-outlined" style={{ color: card.iconColor }}>
-                      {card.icon}
-                    </span>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: card.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                    <span className="ms" style={{ color: card.iconColor, fontVariationSettings: "'FILL' 1" }}>{card.icon}</span>
                   </div>
-                  <h3 className="font-headline text-lg font-bold mb-2" style={{ color: '#181c1e' }}>
-                    {card.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed" style={{ color: '#434653' }}>
-                    {card.desc}
-                  </p>
+                  <h3 className="font-headline" style={{ fontSize: '17px', fontWeight: 800, color: '#181c1e', marginBottom: '8px' }}>{card.title}</h3>
+                  <p style={{ fontSize: '13px', lineHeight: 1.8, color: '#434653' }}>{card.desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Footer */}
-        <footer id="about" style={{ background: '#ebeef1' }} className="py-12 px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        {/* ── CTA Banner ── */}
+        <section style={{ padding: '80px 24px', background: '#1a4db2' }}>
+          <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center', color: '#fff' }}>
+            <h2 className="font-headline reveal" style={{ fontSize: 'clamp(1.6rem,4vw,2.4rem)', fontWeight: 800, marginBottom: '16px' }}>
+              지금 바로 시작하세요
+            </h2>
+            <p className="reveal" style={{ fontSize: '16px', opacity: 0.85, marginBottom: '32px', lineHeight: 1.7 }}>
+              SKEMA와 함께 더 체계적이고 스마트한 하루를 설계하세요.
+            </p>
+            <Link href="/register" className="reveal" style={{ display: 'inline-block', background: '#fff', color: '#1a4db2', padding: '14px 36px', borderRadius: '999px', fontWeight: 700, fontSize: '16px', textDecoration: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', transition: 'transform 0.2s' }}>
+              무료로 시작하기
+            </Link>
+          </div>
+        </section>
+
+        {/* ── Footer ── */}
+        <footer style={{ background: '#ebeef1', padding: '48px 24px' }}>
+          <div style={{ maxWidth: '1120px', margin: '0 auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '32px', marginBottom: '32px' }}>
               <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div
-                    className="w-7 h-7 rounded-lg flex items-center justify-center"
-                    style={{ background: '#1a4db2' }}
-                  >
-                    <span className="material-symbols-outlined text-white" style={{ fontSize: '16px' }}>
-                      schedule
-                    </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                  <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#1a4db2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="ms" style={{ fontSize: '15px', color: '#fff', fontVariationSettings: "'FILL' 1" }}>schedule</span>
                   </div>
-                  <span className="font-bold font-headline" style={{ color: '#181c1e' }}>Chronos AI</span>
+                  <span className="font-headline" style={{ fontWeight: 800, fontSize: '17px', color: '#181c1e' }}>SKEMA</span>
                 </div>
-                <p className="text-sm" style={{ color: '#434653' }}>
-                  AI 기반 스마트 시간표 관리 서비스
-                </p>
+                <p style={{ fontSize: '13px', color: '#434653', lineHeight: 1.6 }}>AI 기반 스마트 시간표 관리 서비스</p>
               </div>
               <div>
-                <h4 className="font-bold text-sm mb-3" style={{ color: '#181c1e' }}>서비스</h4>
-                <div className="flex flex-col gap-2">
-                  {['시간표 관리', 'AI 일정 추천', '시험 준비'].map((item) => (
-                    <span key={item} className="text-sm" style={{ color: '#434653' }}>{item}</span>
-                  ))}
-                </div>
+                <h4 style={{ fontWeight: 700, fontSize: '13px', color: '#181c1e', marginBottom: '12px' }}>서비스</h4>
+                {['시간표 관리', 'AI 일정 추천', '시험 준비'].map((t) => (
+                  <div key={t} style={{ fontSize: '13px', color: '#434653', marginBottom: '8px' }}>{t}</div>
+                ))}
               </div>
               <div>
-                <h4 className="font-bold text-sm mb-3" style={{ color: '#181c1e' }}>지원</h4>
-                <div className="flex flex-col gap-2">
-                  {['이용약관', '개인정보처리방침', '문의하기'].map((item) => (
-                    <span key={item} className="text-sm" style={{ color: '#434653' }}>{item}</span>
-                  ))}
-                </div>
+                <h4 style={{ fontWeight: 700, fontSize: '13px', color: '#181c1e', marginBottom: '12px' }}>지원</h4>
+                {['이용약관', '개인정보처리방침', '문의하기'].map((t) => (
+                  <div key={t} style={{ fontSize: '13px', color: '#434653', marginBottom: '8px' }}>{t}</div>
+                ))}
               </div>
             </div>
-            <div className="border-t pt-6 text-center text-sm" style={{ borderColor: '#d0d3d6', color: '#434653' }}>
-              © 2025 Chronos AI. AI 기반 일정 관리 서비스
+            <div style={{ borderTop: '1px solid #d0d3d6', paddingTop: '24px', textAlign: 'center', fontSize: '13px', color: '#434653' }}>
+              © 2026 SKEMA. AI 기반 시간 설계 서비스
             </div>
           </div>
         </footer>

@@ -92,7 +92,7 @@ export default function RegisterPage() {
                 </span>
               </div>
               <span className="font-bold text-lg font-headline" style={{ color: '#181c1e' }}>
-                Chronos AI
+                SKEMA
               </span>
             </Link>
             <Link
@@ -187,7 +187,7 @@ export default function RegisterPage() {
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
                     <span className="font-bold text-lg">85% 효율 향상</span>
                   </div>
-                  <div className="text-sm opacity-80">Chronos AI 사용자 평균 학습 효율 향상율</div>
+                  <div className="text-sm opacity-80">SKEMA 사용자 평균 학습 효율 향상율</div>
                 </div>
               </div>
             </div>
@@ -208,7 +208,7 @@ export default function RegisterPage() {
                     계정 만들기
                   </h1>
                   <p className="text-sm" style={{ color: '#434653' }}>
-                    Chronos AI와 함께 스마트한 시간 관리를 시작하세요
+                    SKEMA와 함께 스마트한 시간 관리를 시작하세요
                   </p>
                 </div>
 
@@ -363,7 +363,7 @@ export default function RegisterPage() {
 
         {/* Footer */}
         <footer className="py-6 px-6 text-center text-xs" style={{ background: '#ebeef1', color: '#434653' }}>
-          © 2025 Chronos AI. AI 기반 일정 관리 서비스
+          © 2026 SKEMA. AI 기반 일정 관리 서비스
         </footer>
       </div>
     </>
