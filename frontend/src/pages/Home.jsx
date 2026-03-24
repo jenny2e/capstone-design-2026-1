@@ -110,18 +110,19 @@ export default function Home({ user, profile, onLogout, onProfileUpdate }) {
 
       {/* Header */}
       <header style={{
-        background: 'rgba(247,250,253,0.95)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+        background: '#ffffff',
         padding: '0 24px',
         height: 60,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        position: 'sticky',
+        position: 'fixed',
         top: 0,
-        zIndex: 10,
-        borderBottom: '1px solid rgba(195,198,213,0.2)',
+        left: 0,
+        right: 0,
+        zIndex: 100,
+        borderBottom: '1px solid rgba(195,198,213,0.35)',
+        boxShadow: '0 2px 12px rgba(24,28,30,0.06)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 34, height: 34, borderRadius: 10, background: '#1a4db2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -157,7 +158,7 @@ export default function Home({ user, profile, onLogout, onProfileUpdate }) {
         </div>
       </header>
 
-      <main style={{ maxWidth: 1400, margin: '0 auto', padding: '24px 24px' }}>
+      <main style={{ maxWidth: 1400, margin: '0 auto', padding: '84px 24px 24px' }}>
         {/* Page header bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
           <div>

@@ -28,3 +28,6 @@ frontend/.cache/
 # IDE
 .vscode/
 .idea/
+
+# Local skills
+backend/deep-research-skills/

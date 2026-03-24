@@ -43,12 +43,10 @@ export default function AIChat({ onScheduleChange }) {
   };
 
   const handleKey = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       const val = input.trim();
       if (!val || loading) return;
-      setInput('');
-      if (textareaRef.current) textareaRef.current.value = '';
       send(val);
     }
   };
@@ -89,26 +87,54 @@ export default function AIChat({ onScheduleChange }) {
       {/* Messages */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {messages.map((m, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-            {m.role === 'assistant' && (
-              <div style={{ width: 26, height: 26, borderRadius: 8, background: '#1a4db2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: 8, alignSelf: 'flex-end', marginBottom: 2 }}>
-                <span className="material-symbols-outlined" style={{ color: '#fff', fontSize: 14 }}>smart_toy</span>
+          <div key={i}>
+            <div style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+              {m.role === 'assistant' && (
+                <div style={{ width: 26, height: 26, borderRadius: 8, background: '#1a4db2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: 8, alignSelf: 'flex-end', marginBottom: 2 }}>
+                  <span className="material-symbols-outlined" style={{ color: '#fff', fontSize: 14 }}>smart_toy</span>
+                </div>
+              )}
+              <div style={{
+                maxWidth: '76%',
+                padding: '10px 14px',
+                borderRadius: m.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                background: m.role === 'user' ? '#1a4db2' : '#f1f4f7',
+                color: m.role === 'user' ? '#fff' : '#181c1e',
+                fontSize: 13,
+                lineHeight: 1.6,
+                fontFamily: "'Inter', sans-serif",
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+              }}>
+                {m.content}
+              </div>
+            </div>
+            {i === 0 && messages.length === 1 && (
+              <div style={{ paddingLeft: 34, display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => send(s)}
+                    style={{
+                      padding: '6px 12px',
+                      border: '1.5px solid rgba(179,197,255,0.6)',
+                      borderRadius: 9999,
+                      background: '#fff',
+                      color: '#1a4db2',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      fontFamily: "'Inter', sans-serif",
+                      transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#dae1ff'; e.currentTarget.style.borderColor = '#3B66CC'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = 'rgba(179,197,255,0.6)'; }}
+                  >
+                    {s}
+                  </button>
+                ))}
               </div>
             )}
-            <div style={{
-              maxWidth: '76%',
-              padding: '10px 14px',
-              borderRadius: m.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-              background: m.role === 'user' ? '#1a4db2' : '#f1f4f7',
-              color: m.role === 'user' ? '#fff' : '#181c1e',
-              fontSize: 13,
-              lineHeight: 1.6,
-              fontFamily: "'Inter', sans-serif",
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-            }}>
-              {m.content}
-            </div>
           </div>
         ))}
         {loading && (
@@ -126,33 +152,6 @@ export default function AIChat({ onScheduleChange }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Suggestions */}
-      {messages.length <= 1 && (
-        <div style={{ padding: '0 14px 10px', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {SUGGESTIONS.map((s) => (
-            <button
-              key={s}
-              onClick={() => send(s)}
-              style={{
-                padding: '6px 12px',
-                border: '1.5px solid rgba(179,197,255,0.6)',
-                borderRadius: 9999,
-                background: '#fff',
-                color: '#1a4db2',
-                fontSize: 12,
-                fontWeight: 500,
-                cursor: 'pointer',
-                fontFamily: "'Inter', sans-serif",
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#dae1ff'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Input */}
       <div style={{
