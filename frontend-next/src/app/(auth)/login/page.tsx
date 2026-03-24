@@ -16,6 +16,7 @@ export default function LoginPage() {
 
   const [form, setForm] = useState({ username: '', password: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -32,7 +33,6 @@ export default function LoginPage() {
     loginMutation.mutate(form, {
       onSuccess: async (data) => {
         setToken(data.access_token);
-        // Fetch user info
         try {
           const { api } = await import('@/lib/api');
           const { data: user } = await api.get('/auth/me');
@@ -59,205 +59,247 @@ export default function LoginPage() {
     <>
       <style>{`
         .font-headline { font-family: var(--font-manrope), Manrope, sans-serif; }
-        .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; font-size: 24px; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased; font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+        .ms {
+          font-family: 'Material Symbols Outlined';
+          font-weight: normal; font-style: normal;
+          font-size: 24px; line-height: 1;
+          letter-spacing: normal; text-transform: none;
+          display: inline-block; white-space: nowrap;
+          direction: ltr; -webkit-font-smoothing: antialiased;
+          font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;
+        }
+        .glass-panel {
+          background: rgba(255,255,255,0.72);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+        }
+        .input-field {
+          width: 100%;
+          background: #f1f4f7;
+          border: 1.5px solid transparent;
+          border-radius: 10px;
+          padding: 13px 16px;
+          font-size: 14px;
+          color: #181c1e;
+          outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          font-family: Inter, sans-serif;
+          box-sizing: border-box;
+        }
+        .input-field:focus {
+          border-color: rgba(26,77,178,0.3);
+          box-shadow: 0 0 0 3px rgba(26,77,178,0.08);
+        }
+        .input-field.error { border-color: #ef4444; }
+        .submit-btn {
+          width: 100%;
+          background: #3b66cc;
+          color: #fff;
+          border: none;
+          border-radius: 999px;
+          padding: 15px;
+          font-size: 15px;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 6px 20px rgba(26,77,178,0.22);
+          transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+          font-family: Inter, sans-serif;
+        }
+        .submit-btn:hover:not(:disabled) { background: #2b58be; box-shadow: 0 8px 28px rgba(26,77,178,0.3); transform: scale(1.015); }
+        .submit-btn:active:not(:disabled) { transform: scale(0.985); }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
       `}</style>
 
-      <div className="min-h-screen flex flex-col" style={{ background: '#f7fafd', color: '#181c1e' }}>
-        {/* Navbar */}
-        <nav
-          className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center px-6"
-          style={{
-            background: 'rgba(247,250,253,0.92)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            borderBottom: '1px solid #ebeef1',
-          }}
-        >
-          <div className="max-w-6xl mx-auto w-full flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ background: '#1a4db2' }}
-              >
-                <span className="material-symbols-outlined text-white" style={{ fontSize: '18px' }}>
-                  schedule
-                </span>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f7fafd', color: '#181c1e' }}>
+
+        {/* ── Navbar ── */}
+        <nav style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+          background: 'rgba(247,250,253,0.88)', backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)', borderBottom: '1px solid #ebeef1',
+        }}>
+          <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#1a4db2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span className="ms" style={{ fontSize: '17px', color: '#fff', fontVariationSettings: "'FILL' 1" }}>schedule</span>
               </div>
-              <span className="font-bold text-lg font-headline" style={{ color: '#181c1e' }}>
-                SKEMA
-              </span>
+              <span className="font-headline" style={{ fontWeight: 800, fontSize: '20px', color: '#181c1e' }}>SKEMA</span>
             </Link>
-            <Link
-              href="/register"
-              className="text-sm font-bold px-5 py-2 rounded-full transition-all hover:opacity-80"
-              style={{ background: '#1a4db2', color: '#fff' }}
-            >
+            <Link href="/register" style={{ fontSize: '14px', fontWeight: 700, color: '#fff', background: '#3b66cc', padding: '8px 22px', borderRadius: '999px', textDecoration: 'none', transition: 'background 0.2s' }}>
               회원가입
             </Link>
           </div>
         </nav>
 
-        {/* Main */}
-        <main className="flex-grow flex items-center justify-center px-4 py-12 relative overflow-hidden pt-16">
-          {/* Abstract background blobs */}
-          <div
-            className="absolute pointer-events-none"
-            style={{
-              top: '-80px',
-              left: '-80px',
-              width: '400px',
-              height: '400px',
-              borderRadius: '50%',
-              background: 'rgba(195,208,255,0.45)',
-              filter: 'blur(120px)',
-            }}
-          />
-          <div
-            className="absolute pointer-events-none"
-            style={{
-              bottom: '-60px',
-              right: '-60px',
-              width: '350px',
-              height: '350px',
-              borderRadius: '50%',
-              background: 'rgba(26,77,178,0.15)',
-              filter: 'blur(120px)',
-            }}
-          />
-          <div
-            className="absolute pointer-events-none"
-            style={{
-              top: '40%',
-              right: '15%',
-              width: '200px',
-              height: '200px',
-              borderRadius: '50%',
-              background: 'rgba(255,220,198,0.35)',
-              filter: 'blur(80px)',
-            }}
-          />
+        {/* ── Main ── */}
+        <main style={{ flexGrow: 1, display: 'flex', paddingTop: '64px' }}>
+          <div style={{ display: 'flex', width: '100%', maxWidth: '1280px', margin: '0 auto', padding: '48px 24px', gap: '48px', alignItems: 'center' }}>
 
-          {/* Card */}
-          <div
-            className="relative z-10 w-full max-w-md bg-white rounded-xl p-8 md:p-10 shadow-lg"
-            style={{ border: '1px solid #ebeef1' }}
-          >
-            {/* Icon + Title */}
-            <div className="flex flex-col items-center mb-8">
-              <div
-                className="w-14 h-14 rounded-full flex items-center justify-center mb-4"
-                style={{ background: '#ebeef1' }}
-              >
-                <span className="material-symbols-outlined" style={{ color: '#1a4db2', fontSize: '28px' }}>
-                  lock
+            {/* ── Left Panel ── */}
+            <div style={{ flex: 1, display: 'none', flexDirection: 'column', justifyContent: 'center', gap: '32px' }} className="left-panel">
+              <style>{`.left-panel { display: none; } @media (min-width: 1024px) { .left-panel { display: flex; } }`}</style>
+
+              {/* Headline */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#1a4db2', letterSpacing: '2.5px', textTransform: 'uppercase' }}>
+                  AI 시간 설계의 시작
                 </span>
+                <h1 className="font-headline" style={{ fontSize: '40px', fontWeight: 800, lineHeight: 1.2, color: '#181c1e' }}>
+                  나의 시간을<br />AI와 함께<br />설계하세요.
+                </h1>
+                <p style={{ fontSize: '16px', color: '#434653', lineHeight: 1.75, maxWidth: '380px' }}>
+                  SKEMA와 함께라면 복잡한 일정도 간단해집니다. AI가 최적의 시간표를 설계해드립니다.
+                </p>
               </div>
-              <h1
-                className="font-headline text-2xl font-bold mb-1"
-                style={{ color: '#181c1e' }}
-              >
-                로그인
-              </h1>
-              <p className="text-sm" style={{ color: '#434653' }}>
-                SKEMA에 오신 것을 환영합니다
-              </p>
+
+              {/* Feature Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                {[
+                  { icon: 'auto_awesome', title: '스마트 스케줄링', desc: '집중력 최고점 시간대에 맞춰 과제를 자동 배치합니다.' },
+                  { icon: 'analytics', title: '시간 인사이트', desc: '나의 생산성 흐름을 분석하여 최적의 패턴을 찾아드립니다.' },
+                ].map((card) => (
+                  <div key={card.icon} style={{ background: '#ebeef1', borderRadius: '14px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <span className="ms" style={{ color: '#1a4db2', fontVariationSettings: "'FILL' 1" }}>{card.icon}</span>
+                    <div className="font-headline" style={{ fontWeight: 700, fontSize: '15px', color: '#181c1e' }}>{card.title}</div>
+                    <p style={{ fontSize: '13px', color: '#434653', lineHeight: 1.6 }}>{card.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Abstract Visual */}
+              <div style={{ position: 'relative', height: '220px', borderRadius: '18px', overflow: 'hidden', background: 'linear-gradient(135deg, #3b66cc, #c3d0ff)', boxShadow: '0 8px 32px rgba(26,77,178,0.2)' }}>
+                {/* grid pattern overlay */}
+                <div style={{ position: 'absolute', inset: 0, opacity: 0.12, backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+                {/* floating dots */}
+                {[[20,30],[60,70],[80,20],[40,80],[70,50]].map(([x,y],i) => (
+                  <div key={i} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.5)' }} />
+                ))}
+                {/* glass stat card */}
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div className="glass-panel" style={{ padding: '28px 36px', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', border: '1px solid rgba(255,255,255,0.3)', textAlign: 'center' }}>
+                    <div className="font-headline" style={{ fontSize: '40px', fontWeight: 900, color: '#1a4db2', lineHeight: 1 }}>85%</div>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#434653', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '6px' }}>평균 효율 향상</div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Username */}
-              <div>
-                <label
-                  htmlFor="username"
-                  className="block text-xs font-bold uppercase tracking-wider mb-1.5"
-                  style={{ color: '#434653' }}
-                >
-                  아이디
-                </label>
-                <input
-                  id="username"
-                  type="text"
-                  placeholder="아이디를 입력하세요"
-                  value={form.username}
-                  onChange={(e) => setForm({ ...form, username: e.target.value })}
-                  className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2"
-                  style={{
-                    background: '#f1f4f7',
-                    border: errors.username ? '1.5px solid #ef4444' : '1.5px solid transparent',
-                    color: '#181c1e',
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '14px',
-                  }}
-                />
-                {errors.username && (
-                  <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.username}</p>
-                )}
+            {/* ── Right: Form Card ── */}
+            <div style={{ width: '100%', maxWidth: '440px', margin: '0 auto' }}>
+              <div style={{ background: '#fff', borderRadius: '20px', padding: '36px', boxShadow: '0 4px 24px rgba(26,77,178,0.07)', border: '1px solid rgba(195,198,213,0.15)' }}>
+
+                {/* Title */}
+                <div style={{ marginBottom: '28px' }}>
+                  <h2 className="font-headline" style={{ fontSize: '28px', fontWeight: 800, color: '#181c1e', marginBottom: '6px' }}>
+                    로그인
+                  </h2>
+                  <p style={{ fontSize: '14px', color: '#434653' }}>SKEMA에서 나만의 시간표를 관리하세요.</p>
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+
+                  {/* Username */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#434653', letterSpacing: '1.2px', textTransform: 'uppercase', marginBottom: '7px' }}>
+                      아이디
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="아이디를 입력하세요"
+                      value={form.username}
+                      onChange={(e) => setForm({ ...form, username: e.target.value })}
+                      className={`input-field${errors.username ? ' error' : ''}`}
+                    />
+                    {errors.username && <p style={{ fontSize: '12px', color: '#ef4444', marginTop: '5px' }}>{errors.username}</p>}
+                  </div>
+
+                  {/* Password */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#434653', letterSpacing: '1.2px', textTransform: 'uppercase', marginBottom: '7px' }}>
+                      비밀번호
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="비밀번호를 입력하세요"
+                        value={form.password}
+                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                        className={`input-field${errors.password ? ' error' : ''}`}
+                        style={{ paddingRight: '44px' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#747684', padding: '4px', display: 'flex', alignItems: 'center' }}
+                      >
+                        <span className="ms" style={{ fontSize: '20px' }}>{showPassword ? 'visibility_off' : 'visibility'}</span>
+                      </button>
+                    </div>
+                    {errors.password && <p style={{ fontSize: '12px', color: '#ef4444', marginTop: '5px' }}>{errors.password}</p>}
+                  </div>
+
+                  <button type="submit" className="submit-btn" disabled={loginMutation.isPending} style={{ marginTop: '4px' }}>
+                    {loginMutation.isPending ? '로그인 중...' : '로그인'}
+                  </button>
+                </form>
+
+                {/* Divider */}
+                <div style={{ position: 'relative', margin: '24px 0' }}>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center' }}>
+                    <div style={{ width: '100%', height: '1px', background: '#e5e8eb' }} />
+                  </div>
+                  <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+                    <span style={{ background: '#fff', padding: '0 16px', fontSize: '11px', fontWeight: 700, color: '#747684', letterSpacing: '1px', textTransform: 'uppercase' }}>또는</span>
+                  </div>
+                </div>
+
+                {/* Bottom link */}
+                <p style={{ textAlign: 'center', fontSize: '14px', color: '#434653' }}>
+                  계정이 없으신가요?{' '}
+                  <Link href="/register" style={{ color: '#3b66cc', fontWeight: 700, textDecoration: 'none' }}>
+                    회원가입
+                  </Link>
+                </p>
               </div>
-
-              {/* Password */}
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block text-xs font-bold uppercase tracking-wider mb-1.5"
-                  style={{ color: '#434653' }}
-                >
-                  비밀번호
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  placeholder="비밀번호를 입력하세요"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2"
-                  style={{
-                    background: '#f1f4f7',
-                    border: errors.password ? '1.5px solid #ef4444' : '1.5px solid transparent',
-                    color: '#181c1e',
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '14px',
-                  }}
-                />
-                {errors.password && (
-                  <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.password}</p>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                disabled={loginMutation.isPending}
-                className="w-full py-4 rounded-full font-bold text-white transition-all hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed mt-2"
-                style={{
-                  background: '#1a4db2',
-                  boxShadow: '0 8px 24px rgba(26,77,178,0.2)',
-                }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#3b66cc'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#1a4db2'; }}
-              >
-                {loginMutation.isPending ? '로그인 중...' : '로그인'}
-              </button>
-            </form>
-
-            <div className="mt-6 pt-6" style={{ borderTop: '1px solid #ebeef1' }}>
-              <p className="text-center text-sm" style={{ color: '#434653' }}>
-                계정이 없으신가요?{' '}
-                <Link
-                  href="/register"
-                  className="font-bold hover:underline inline-flex items-center gap-1"
-                  style={{ color: '#1a4db2' }}
-                >
-                  회원가입
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                    arrow_forward
-                  </span>
-                </Link>
-              </p>
             </div>
+
           </div>
         </main>
 
-        {/* Footer */}
-        <footer className="py-6 px-6 text-center text-xs" style={{ background: '#ebeef1', color: '#434653' }}>
-          © 2026 SKEMA. AI 기반 일정 관리 서비스
+        {/* ── Footer ── */}
+        <footer style={{ background: '#ebeef1', padding: '48px 24px' }}>
+          <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '32px', marginBottom: '32px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#1a4db2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span className="ms" style={{ fontSize: '15px', color: '#fff', fontVariationSettings: "'FILL' 1" }}>schedule</span>
+                </div>
+                <span className="font-headline" style={{ fontWeight: 800, fontSize: '17px', color: '#181c1e' }}>SKEMA</span>
+              </div>
+              <p style={{ fontSize: '13px', color: '#434653', lineHeight: 1.6 }}>AI 기반 스마트 시간표 관리 서비스</p>
+              <p style={{ fontSize: '12px', color: '#747684', marginTop: '6px' }}>© 2026 SKEMA. AI 기반 일정 관리 서비스</p>
+            </div>
+            <div>
+              <h4 style={{ fontSize: '11px', fontWeight: 700, color: '#1a4db2', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '12px' }}>서비스</h4>
+              {['이용약관', '개인정보처리방침', '고객센터'].map((t) => (
+                <div key={t} style={{ fontSize: '13px', color: '#44474a', marginBottom: '8px', cursor: 'pointer' }}>{t}</div>
+              ))}
+            </div>
+            <div style={{ background: 'rgba(224,227,230,0.5)', borderRadius: '14px', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <p style={{ fontSize: '13px', color: '#434653', fontStyle: 'italic', lineHeight: 1.6 }}>
+                &ldquo;한 번에 하나씩 집중하는 것이 많은 일을 해내는 가장 빠른 방법입니다.&rdquo;
+              </p>
+              <div style={{ display: 'flex', gap: '14px', marginTop: '16px' }}>
+                {['alarm_on', 'schedule', 'event_available'].map((icon) => (
+                  <span key={icon} className="ms" style={{ color: '#3b66cc', fontVariationSettings: "'FILL' 1" }}>{icon}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div style={{ borderTop: '1px solid #d0d3d6', paddingTop: '20px', textAlign: 'center', fontSize: '12px', color: '#747684', maxWidth: '1280px', margin: '0 auto' }}>
+            © 2026 SKEMA. AI 기반 시간 설계 서비스
+          </div>
         </footer>
       </div>
     </>
