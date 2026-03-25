@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useQueryClient } from '@tanstack/react-query';
@@ -68,22 +67,31 @@ export function AIChat({ onClose }: AIChatProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-gray-900 border-l">
+    <div
+      className="flex flex-col bg-white border-l"
+      style={{ height: 'calc(100vh - 56px)' }}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b">
+      <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold"
+            style={{ background: 'var(--skema-primary)' }}
+          >
             AI
           </div>
           <div>
-            <p className="text-sm font-semibold">AI 어시스턴트</p>
-            <p className="text-xs text-gray-400">일정 관리를 도와드립니다</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--skema-on-surface)' }}>AI 어시스턴트</p>
+            <p className="text-xs" style={{ color: 'var(--skema-outline-strong)' }}>일정 관리를 도와드립니다</p>
           </div>
         </div>
         {onClose && (
-          <Button variant="ghost" size="sm" onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--skema-outline-strong)', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
             ✕
-          </Button>
+          </button>
         )}
       </div>
 
@@ -99,17 +107,20 @@ export function AIChat({ onClose }: AIChatProps) {
               )}
             >
               {msg.role === 'assistant' && (
-                <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 text-xs font-bold mr-2 mt-1 flex-shrink-0">
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-2 mt-1 flex-shrink-0"
+                  style={{ background: 'var(--skema-secondary-container)', color: 'var(--skema-primary)' }}
+                >
                   AI
                 </div>
               )}
               <div
-                className={cn(
-                  'max-w-[80%] rounded-xl px-3 py-2 text-sm',
+                className={cn('max-w-[80%] rounded-xl px-3 py-2 text-sm')}
+                style={
                   msg.role === 'user'
-                    ? 'bg-indigo-600 text-white rounded-tr-sm'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-sm'
-                )}
+                    ? { background: 'var(--skema-primary)', color: '#fff', borderTopRightRadius: '4px' }
+                    : { background: 'var(--skema-surface-low)', color: 'var(--skema-on-surface)', borderTopLeftRadius: '4px' }
+                }
               >
                 <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
               </div>
@@ -118,14 +129,17 @@ export function AIChat({ onClose }: AIChatProps) {
 
           {loading && (
             <div className="flex justify-start">
-              <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 text-xs font-bold mr-2 mt-1 flex-shrink-0">
+              <div
+                className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-2 mt-1 flex-shrink-0"
+                style={{ background: 'var(--skema-secondary-container)', color: 'var(--skema-primary)' }}
+              >
                 AI
               </div>
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-xl rounded-tl-sm px-4 py-3">
+              <div className="rounded-xl rounded-tl-sm px-4 py-3" style={{ background: 'var(--skema-surface-low)' }}>
                 <div className="flex gap-1">
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                  <span className="w-2 h-2 rounded-full animate-bounce [animation-delay:0ms]" style={{ background: 'var(--skema-outline-strong)' }} />
+                  <span className="w-2 h-2 rounded-full animate-bounce [animation-delay:150ms]" style={{ background: 'var(--skema-outline-strong)' }} />
+                  <span className="w-2 h-2 rounded-full animate-bounce [animation-delay:300ms]" style={{ background: 'var(--skema-outline-strong)' }} />
                 </div>
               </div>
             </div>
@@ -136,7 +150,7 @@ export function AIChat({ onClose }: AIChatProps) {
       </ScrollArea>
 
       {/* Input */}
-      <div className="p-3 border-t">
+      <div className="p-3 border-t flex-shrink-0">
         <div className="flex gap-2">
           <Textarea
             placeholder="메시지를 입력하세요... (Shift+Enter로 줄바꿈)"
@@ -146,14 +160,20 @@ export function AIChat({ onClose }: AIChatProps) {
             className="resize-none text-sm min-h-[80px]"
             disabled={loading}
           />
-          <Button
+          <button
             onClick={sendMessage}
             disabled={!input.trim() || loading}
-            className="self-end bg-indigo-600 hover:bg-indigo-700"
-            size="sm"
+            className="self-end"
+            style={{
+              background: (!input.trim() || loading) ? 'var(--skema-container)' : 'var(--skema-primary)',
+              color: (!input.trim() || loading) ? 'var(--skema-outline-strong)' : '#fff',
+              border: 'none', borderRadius: '10px', padding: '8px 14px',
+              fontSize: '13px', fontWeight: 700, cursor: (!input.trim() || loading) ? 'not-allowed' : 'pointer',
+              transition: 'background 0.2s', flexShrink: 0,
+            }}
           >
             전송
-          </Button>
+          </button>
         </div>
       </div>
     </div>

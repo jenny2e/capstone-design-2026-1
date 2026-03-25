@@ -7,6 +7,9 @@ import { toast } from 'sonner';
 import { useRegister, useLogin } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
 import { useQueryClient } from '@tanstack/react-query';
+import AuthNavbar from '@/components/layout/AuthNavbar';
+import AuthFooter from '@/components/layout/AuthFooter';
+import MaterialIcon from '@/components/common/MaterialIcon';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -71,50 +74,36 @@ export default function RegisterPage() {
   return (
     <>
       <style>{`
-        .font-headline { font-family: var(--font-manrope), Manrope, sans-serif; }
-        .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; font-size: 24px; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased; font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+        .register-input {
+          width: 100%;
+          padding: 12px 16px;
+          border-radius: 8px;
+          outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          background: var(--skema-surface-low);
+          color: var(--skema-on-surface);
+          font-family: Inter, sans-serif;
+          font-size: 14px;
+          box-sizing: border-box;
+        }
+        .register-input:focus {
+          box-shadow: 0 0 0 2px rgba(26,77,178,0.15);
+        }
       `}</style>
 
-      <div className="min-h-screen flex flex-col" style={{ background: '#f7fafd', color: '#181c1e' }}>
-        {/* Nav */}
-        <nav
-          className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center px-6"
-          style={{ background: 'rgba(247,250,253,0.92)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderBottom: '1px solid #ebeef1' }}
-        >
-          <div className="max-w-6xl mx-auto w-full flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ background: '#1a4db2' }}
-              >
-                <span className="material-symbols-outlined text-white" style={{ fontSize: '18px' }}>
-                  schedule
-                </span>
-              </div>
-              <span className="font-bold text-lg font-headline" style={{ color: '#181c1e' }}>
-                SKEMA
-              </span>
-            </Link>
-            <Link
-              href="/login"
-              className="text-sm font-bold px-5 py-2 rounded-full transition-all hover:opacity-80"
-              style={{ background: '#ebeef1', color: '#1a4db2' }}
-            >
-              로그인
-            </Link>
-          </div>
-        </nav>
+      <div className="min-h-screen flex flex-col" style={{ background: 'var(--skema-surface)', color: 'var(--skema-on-surface)' }}>
+        <AuthNavbar mode="register" />
 
         {/* Main */}
         <main className="flex-grow flex pt-16">
           {/* Left Panel */}
           <div
             className="hidden lg:flex lg:w-1/2 flex-col justify-center px-16 py-12"
-            style={{ background: '#1a4db2', color: '#fff' }}
+            style={{ background: 'var(--skema-primary)', color: '#fff' }}
           >
             <div className="max-w-md">
               <h2
-                className="font-headline text-4xl font-bold mb-4 leading-tight"
+                className="skema-headline text-4xl font-bold mb-4 leading-tight"
               >
                 Master your time
                 <br />
@@ -134,9 +123,7 @@ export default function RegisterPage() {
                     className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: 'rgba(255,255,255,0.2)' }}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-                      psychology
-                    </span>
+                    <MaterialIcon icon="psychology" size={20} color="#fff" />
                   </div>
                   <div>
                     <div className="font-bold mb-1">Smart Scheduling</div>
@@ -152,9 +139,7 @@ export default function RegisterPage() {
                     className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: 'rgba(255,255,255,0.2)' }}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-                      insights
-                    </span>
+                    <MaterialIcon icon="insights" size={20} color="#fff" />
                   </div>
                   <div>
                     <div className="font-bold mb-1">Time Insights</div>
@@ -173,18 +158,18 @@ export default function RegisterPage() {
               >
                 <div
                   className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-20"
-                  style={{ background: '#c3d0ff' }}
+                  style={{ background: 'var(--skema-secondary-container)' }}
                 />
                 <div
                   className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full opacity-15"
-                  style={{ background: '#ffdcc6' }}
+                  style={{ background: 'var(--skema-tertiary-fixed)' }}
                 />
                 <div className="relative z-10">
                   <div
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl mb-3"
                     style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>trending_up</span>
+                    <MaterialIcon icon="trending_up" size={18} color="#fff" />
                     <span className="font-bold text-lg">85% 효율 향상</span>
                   </div>
                   <div className="text-sm opacity-80">SKEMA 사용자 평균 학습 효율 향상율</div>
@@ -198,16 +183,16 @@ export default function RegisterPage() {
             <div className="w-full max-w-md">
               <div
                 className="bg-white rounded-xl p-8 shadow-sm"
-                style={{ border: '1px solid #ebeef1' }}
+                style={{ border: '1px solid var(--skema-container)' }}
               >
                 <div className="mb-6">
                   <h1
-                    className="font-headline text-2xl font-bold mb-1"
-                    style={{ color: '#181c1e' }}
+                    className="skema-headline text-2xl font-bold mb-1"
+                    style={{ color: 'var(--skema-on-surface)' }}
                   >
                     계정 만들기
                   </h1>
-                  <p className="text-sm" style={{ color: '#434653' }}>
+                  <p className="text-sm" style={{ color: 'var(--skema-on-surface-variant)' }}>
                     SKEMA와 함께 스마트한 시간 관리를 시작하세요
                   </p>
                 </div>
@@ -218,7 +203,7 @@ export default function RegisterPage() {
                     <label
                       htmlFor="username"
                       className="block text-xs font-bold uppercase tracking-wider mb-1.5"
-                      style={{ color: '#434653' }}
+                      style={{ color: 'var(--skema-on-surface-variant)' }}
                     >
                       아이디
                     </label>
@@ -228,13 +213,9 @@ export default function RegisterPage() {
                       placeholder="아이디 (3자 이상)"
                       value={form.username}
                       onChange={(e) => setForm({ ...form, username: e.target.value })}
-                      className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2"
+                      className="register-input"
                       style={{
-                        background: '#f1f4f7',
                         border: errors.username ? '1.5px solid #ef4444' : '1.5px solid transparent',
-                        color: '#181c1e',
-                        fontFamily: 'Inter, sans-serif',
-                        fontSize: '14px',
                       }}
                     />
                     {errors.username && (
@@ -247,7 +228,7 @@ export default function RegisterPage() {
                     <label
                       htmlFor="email"
                       className="block text-xs font-bold uppercase tracking-wider mb-1.5"
-                      style={{ color: '#434653' }}
+                      style={{ color: 'var(--skema-on-surface-variant)' }}
                     >
                       이메일
                     </label>
@@ -257,13 +238,9 @@ export default function RegisterPage() {
                       placeholder="이메일 주소"
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
-                      className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2"
+                      className="register-input"
                       style={{
-                        background: '#f1f4f7',
                         border: errors.email ? '1.5px solid #ef4444' : '1.5px solid transparent',
-                        color: '#181c1e',
-                        fontFamily: 'Inter, sans-serif',
-                        fontSize: '14px',
                       }}
                     />
                     {errors.email && (
@@ -276,7 +253,7 @@ export default function RegisterPage() {
                     <label
                       htmlFor="password"
                       className="block text-xs font-bold uppercase tracking-wider mb-1.5"
-                      style={{ color: '#434653' }}
+                      style={{ color: 'var(--skema-on-surface-variant)' }}
                     >
                       비밀번호
                     </label>
@@ -286,13 +263,9 @@ export default function RegisterPage() {
                       placeholder="비밀번호 (6자 이상)"
                       value={form.password}
                       onChange={(e) => setForm({ ...form, password: e.target.value })}
-                      className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2"
+                      className="register-input"
                       style={{
-                        background: '#f1f4f7',
                         border: errors.password ? '1.5px solid #ef4444' : '1.5px solid transparent',
-                        color: '#181c1e',
-                        fontFamily: 'Inter, sans-serif',
-                        fontSize: '14px',
                       }}
                     />
                     {errors.password && (
@@ -305,7 +278,7 @@ export default function RegisterPage() {
                     <label
                       htmlFor="confirmPassword"
                       className="block text-xs font-bold uppercase tracking-wider mb-1.5"
-                      style={{ color: '#434653' }}
+                      style={{ color: 'var(--skema-on-surface-variant)' }}
                     >
                       비밀번호 확인
                     </label>
@@ -315,13 +288,9 @@ export default function RegisterPage() {
                       placeholder="비밀번호를 다시 입력하세요"
                       value={form.confirmPassword}
                       onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                      className="w-full px-4 py-3 rounded-lg outline-none transition-all focus:ring-2"
+                      className="register-input"
                       style={{
-                        background: '#f1f4f7',
                         border: errors.confirmPassword ? '1.5px solid #ef4444' : '1.5px solid transparent',
-                        color: '#181c1e',
-                        fontFamily: 'Inter, sans-serif',
-                        fontSize: '14px',
                       }}
                     />
                     {errors.confirmPassword && (
@@ -334,25 +303,25 @@ export default function RegisterPage() {
                     disabled={registerMutation.isPending || loginMutation.isPending}
                     className="w-full py-4 rounded-full font-bold text-white transition-all hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed mt-2"
                     style={{
-                      background: '#3B66CC',
-                      boxShadow: '0 4px 16px rgba(59,102,204,0.3)',
+                      background: 'var(--skema-primary-hover)',
+                      boxShadow: '0 4px 16px var(--skema-primary-shadow)',
                     }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#1a4db2'; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#3B66CC'; }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--skema-primary)'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--skema-primary-hover)'; }}
                   >
                     {registerMutation.isPending || loginMutation.isPending ? '처리 중...' : '회원가입'}
                   </button>
                 </form>
 
                 <div className="mt-6 flex items-center gap-3">
-                  <div className="flex-1 h-px" style={{ background: '#ebeef1' }} />
-                  <span className="text-xs" style={{ color: '#434653' }}>또는</span>
-                  <div className="flex-1 h-px" style={{ background: '#ebeef1' }} />
+                  <div className="flex-1 h-px" style={{ background: 'var(--skema-container)' }} />
+                  <span className="text-xs" style={{ color: 'var(--skema-on-surface-variant)' }}>또는</span>
+                  <div className="flex-1 h-px" style={{ background: 'var(--skema-container)' }} />
                 </div>
 
-                <div className="mt-4 text-center text-sm" style={{ color: '#434653' }}>
+                <div className="mt-4 text-center text-sm" style={{ color: 'var(--skema-on-surface-variant)' }}>
                   이미 계정이 있으신가요?{' '}
-                  <Link href="/login" className="font-bold hover:underline" style={{ color: '#1a4db2' }}>
+                  <Link href="/login" className="font-bold hover:underline" style={{ color: 'var(--skema-primary)' }}>
                     로그인
                   </Link>
                 </div>
@@ -361,10 +330,7 @@ export default function RegisterPage() {
           </div>
         </main>
 
-        {/* Footer */}
-        <footer className="py-6 px-6 text-center text-xs" style={{ background: '#ebeef1', color: '#434653' }}>
-          © 2026 SKEMA. AI 기반 일정 관리 서비스
-        </footer>
+        <AuthFooter />
       </div>
     </>
   );

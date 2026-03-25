@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Schedule } from '@/types';
 import { DAY_NAMES, timeToMinutes, cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -8,26 +8,11 @@ import { useDeleteSchedule } from '@/hooks/useSchedules';
 import { useUIStore } from '@/store/uiStore';
 import { toast } from 'sonner';
 
-const START_HOUR = 8;
-const END_HOUR = 22;
-const TOTAL_MINUTES = (END_HOUR - START_HOUR) * 60;
 const HOUR_HEIGHT = 60; // px per hour
-const GRID_HEIGHT = TOTAL_MINUTES; // 1px per minute
 
 interface TimetableProps {
   schedules: Schedule[];
   readOnly?: boolean;
-}
-
-function getTopPercent(time: string): number {
-  const minutes = timeToMinutes(time) - START_HOUR * 60;
-  return (Math.max(0, minutes) / TOTAL_MINUTES) * 100;
-}
-
-function getHeightPercent(start: string, end: string): number {
-  const startMin = Math.max(timeToMinutes(start), START_HOUR * 60);
-  const endMin = Math.min(timeToMinutes(end), END_HOUR * 60);
-  return ((endMin - startMin) / TOTAL_MINUTES) * 100;
 }
 
 function hasConflict(a: Schedule, b: Schedule): boolean {
@@ -45,12 +30,29 @@ interface ScheduleBlockProps {
   readOnly: boolean;
   onEdit: (s: Schedule) => void;
   onDelete: (id: number) => void;
+  startHour: number;
+  totalMinutes: number;
 }
 
-function ScheduleBlock({ schedule, isConflict, readOnly, onEdit, onDelete }: ScheduleBlockProps) {
+function getTopPercent(time: string, startHour: number, totalMinutes: number): number {
+  const minutes = timeToMinutes(time) - startHour * 60;
+  return (Math.max(0, minutes) / totalMinutes) * 100;
+}
+
+function getHeightPercent(start: string, end: string, startHour: number, endHour: number, totalMinutes: number): number {
+  const startMin = Math.max(timeToMinutes(start), startHour * 60);
+  const endMin = Math.min(timeToMinutes(end), endHour * 60);
+  return ((endMin - startMin) / totalMinutes) * 100;
+}
+
+function ScheduleBlock({ schedule, isConflict, readOnly, onEdit, onDelete, startHour, totalMinutes }: ScheduleBlockProps) {
   const [hovered, setHovered] = useState(false);
-  const top = getTopPercent(schedule.start_time);
-  const height = getHeightPercent(schedule.start_time, schedule.end_time);
+  const endHour = startHour + totalMinutes / 60;
+  const top = getTopPercent(schedule.start_time, startHour, totalMinutes);
+  const height = getHeightPercent(schedule.start_time, schedule.end_time, startHour, endHour, totalMinutes);
+
+  const durationMin = (timeToMinutes(schedule.end_time) - timeToMinutes(schedule.start_time));
+  const isCompact = durationMin < 45;
 
   const priorityDot =
     schedule.priority === 2
@@ -78,19 +80,36 @@ function ScheduleBlock({ schedule, isConflict, readOnly, onEdit, onDelete }: Sch
     >
       <div className="flex items-start justify-between gap-1">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1 font-semibold leading-tight truncate">
-            {priorityDot && (
-              <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', priorityDot)} />
-            )}
-            <span className="truncate">{schedule.title}</span>
+          {priorityDot && !isCompact && (
+            <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0 inline-block mr-1', priorityDot)} />
+          )}
+          {/* Title */}
+          <div style={{
+            fontSize: isCompact ? '10px' : '11px',
+            fontWeight: 700,
+            lineHeight: 1.2,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: isCompact ? 'nowrap' : 'normal',
+            display: isCompact ? 'block' : '-webkit-box',
+            WebkitLineClamp: isCompact ? undefined : 2,
+            WebkitBoxOrient: isCompact ? undefined : 'vertical' as const,
+            textDecoration: schedule.is_completed ? 'line-through' : 'none',
+            opacity: schedule.is_completed ? 0.6 : 1,
+          }}>
+            {schedule.title}
           </div>
-          {height > 4 && (
-            <div className="text-white/80 text-[10px] truncate">
-              {schedule.start_time} - {schedule.end_time}
+          {/* Time — hide in compact mode */}
+          {!isCompact && (
+            <div style={{ fontSize: '10px', opacity: 0.72, marginTop: '2px', fontWeight: 400 }}>
+              {schedule.start_time}–{schedule.end_time}
             </div>
           )}
-          {schedule.location && height > 6 && (
-            <div className="text-white/70 text-[10px] truncate">📍 {schedule.location}</div>
+          {/* Location — only when not compact */}
+          {!isCompact && schedule.location && (
+            <div style={{ fontSize: '10px', opacity: 0.65, marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              📍 {schedule.location}
+            </div>
           )}
         </div>
         {!readOnly && hovered && (
@@ -120,15 +139,29 @@ export function Timetable({ schedules, readOnly = false }: TimetableProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTimeTop, setCurrentTimeTop] = useState<number | null>(null);
 
+  // Compute dynamic time range
+  const { visibleStart, visibleEnd } = useMemo(() => {
+    if (!schedules || schedules.length === 0) return { visibleStart: 8, visibleEnd: 22 };
+    const starts = schedules.map(s => Math.floor(parseInt(s.start_time.split(':')[0])));
+    const ends = schedules.map(s => Math.ceil(parseInt(s.end_time.split(':')[0])));
+    return {
+      visibleStart: Math.max(6, Math.min(...starts) - 1),
+      visibleEnd: Math.min(23, Math.max(...ends) + 1),
+    };
+  }, [schedules]);
+
+  const TOTAL_MINUTES = (visibleEnd - visibleStart) * 60;
+  const GRID_HEIGHT = TOTAL_MINUTES; // 1px per minute
+
   const updateCurrentTime = useCallback(() => {
     const now = new Date();
-    const minutes = now.getHours() * 60 + now.getMinutes() - START_HOUR * 60;
+    const minutes = now.getHours() * 60 + now.getMinutes() - visibleStart * 60;
     if (minutes >= 0 && minutes <= TOTAL_MINUTES) {
       setCurrentTimeTop((minutes / TOTAL_MINUTES) * 100);
     } else {
       setCurrentTimeTop(null);
     }
-  }, []);
+  }, [visibleStart, TOTAL_MINUTES]);
 
   useEffect(() => {
     updateCurrentTime();
@@ -145,7 +178,7 @@ export function Timetable({ schedules, readOnly = false }: TimetableProps) {
     }
   };
 
-  const hours = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i);
+  const hours = Array.from({ length: visibleEnd - visibleStart + 1 }, (_, i) => visibleStart + i);
 
   const schedulesByDay = DAY_NAMES.map((_, dayIdx) =>
     schedules.filter((s) => s.day_of_week === dayIdx)
@@ -189,7 +222,7 @@ export function Timetable({ schedules, readOnly = false }: TimetableProps) {
               <div
                 key={hour}
                 className="absolute right-2 text-[10px] text-gray-400 dark:text-gray-500 -translate-y-2"
-                style={{ top: `${((hour - START_HOUR) * 60 / TOTAL_MINUTES) * 100}%` }}
+                style={{ top: `${((hour - visibleStart) * 60 / TOTAL_MINUTES) * 100}%` }}
               >
                 {hour}:00
               </div>
@@ -210,7 +243,7 @@ export function Timetable({ schedules, readOnly = false }: TimetableProps) {
                   <div
                     key={hour}
                     className="absolute left-0 right-0 border-t border-gray-100 dark:border-gray-800"
-                    style={{ top: `${((hour - START_HOUR) / (END_HOUR - START_HOUR)) * 100}%` }}
+                    style={{ top: `${((hour - visibleStart) / (visibleEnd - visibleStart)) * 100}%` }}
                   />
                 ))}
 
@@ -236,6 +269,8 @@ export function Timetable({ schedules, readOnly = false }: TimetableProps) {
                     readOnly={readOnly}
                     onEdit={openClassForm}
                     onDelete={handleDelete}
+                    startHour={visibleStart}
+                    totalMinutes={TOTAL_MINUTES}
                   />
                 ))}
               </div>

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +29,7 @@ import { useSchedules } from '@/hooks/useSchedules';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { api } from '@/lib/api';
+import MaterialIcon from '@/components/common/MaterialIcon';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -70,144 +70,155 @@ export default function DashboardPage() {
     }
   };
 
-  const completedCount = schedules.filter((s) => s.is_completed).length;
-  const totalCount = schedules.length;
-
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-900 border-b px-4 h-14 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-            <span className="text-white text-sm font-bold">시</span>
+    <>
+      <style>{`
+        .hide-mobile { display: none; }
+        @media (min-width: 640px) { .hide-mobile { display: inline; } }
+      `}</style>
+      <div className="flex flex-col h-screen" style={{ background: 'var(--skema-surface)' }}>
+        {/* Header */}
+        <header style={{
+          height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 20px', borderBottom: '1px solid var(--skema-container)',
+          background: '#fff', position: 'sticky', top: 0, zIndex: 30, flexShrink: 0
+        }}>
+          {/* Left: Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: 'var(--skema-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <MaterialIcon icon="schedule" size={15} color="#fff" filled />
+            </div>
+            <span className="skema-headline" style={{ fontWeight: 800, fontSize: '18px', color: 'var(--skema-on-surface)' }}>SKEMA</span>
           </div>
-          <h1 className="font-bold text-lg text-gray-900 dark:text-white hidden sm:block">
-            스마트 시간표
-          </h1>
-          {totalCount > 0 && (
-            <Badge variant="secondary" className="hidden sm:inline-flex">
-              {completedCount}/{totalCount} 완료
-            </Badge>
+
+          {/* Right: Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Add button: icon + text */}
+            <button onClick={() => openClassForm()} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--skema-primary)', color: '#fff', border: 'none', borderRadius: '10px', padding: '7px 14px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+              <MaterialIcon icon="add" size={16} color="#fff" />
+              수업 추가
+            </button>
+
+            {/* AI Chat toggle */}
+            <button
+              onClick={toggleChat}
+              title="AI 채팅"
+              style={{ display: 'flex', alignItems: 'center', gap: '5px', background: isChatOpen ? 'var(--skema-secondary-container)' : 'var(--skema-surface-low)', border: 'none', borderRadius: '10px', padding: '7px 12px', fontSize: '13px', fontWeight: 600, color: isChatOpen ? 'var(--skema-primary)' : 'var(--skema-on-surface-variant)', cursor: 'pointer' }}
+            >
+              <MaterialIcon icon="smart_toy" size={16} color={isChatOpen ? 'var(--skema-primary)' : 'var(--skema-on-surface-variant)'} filled={isChatOpen} />
+              <span className="hide-mobile">AI</span>
+            </button>
+
+            {/* Share button */}
+            <button
+              onClick={handleShare}
+              title="공유"
+              style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--skema-surface-low)', border: 'none', borderRadius: '10px', padding: '7px 12px', fontSize: '13px', fontWeight: 600, color: 'var(--skema-on-surface-variant)', cursor: 'pointer' }}
+            >
+              <MaterialIcon icon="share" size={16} color="var(--skema-on-surface-variant)" />
+              <span className="hide-mobile">공유</span>
+            </button>
+
+            {/* User menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-2 rounded-full transition-all outline-none">
+                <Avatar className="w-8 h-8">
+                  <AvatarFallback className="text-xs font-bold" style={{ background: 'var(--skema-secondary-container)', color: 'var(--skema-primary)' }}>
+                    {user?.username?.[0]?.toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>
+                  <p className="font-semibold">{user?.username}</p>
+                  <p className="text-xs text-gray-500 font-normal">{user?.email}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push('/onboarding')}>
+                  설정
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
+                  로그아웃
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Left: Timetable + Exams */}
+          <div className="flex-1 overflow-auto p-4">
+            <Tabs defaultValue="timetable">
+              <TabsList className="mb-4">
+                <TabsTrigger value="timetable">시간표</TabsTrigger>
+                <TabsTrigger value="exams">시험 일정</TabsTrigger>
+              </TabsList>
+              <TabsContent value="timetable">
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--skema-secondary-container)', borderTopColor: 'transparent' }} />
+                  </div>
+                ) : (
+                  <Timetable schedules={schedules} />
+                )}
+
+              </TabsContent>
+              <TabsContent value="exams">
+                <ExamList />
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Right: AI Chat Sidebar */}
+          {isChatOpen && (
+            <div className="w-80 flex-shrink-0 overflow-hidden border-l">
+              <AIChat onClose={toggleChat} />
+            </div>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            onClick={() => openClassForm()}
-            className="bg-indigo-600 hover:bg-indigo-700"
-          >
-            + 추가
-          </Button>
-          <Button
-            size="sm"
-            variant={isChatOpen ? 'default' : 'outline'}
-            onClick={toggleChat}
-            className={isChatOpen ? 'bg-indigo-600 hover:bg-indigo-700' : ''}
-          >
-            🤖 AI
-          </Button>
-          <Button size="sm" variant="outline" onClick={handleShare}>
-            공유
-          </Button>
+        {/* Class Form Dialog */}
+        <ClassForm />
 
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-2 rounded-full hover:ring-2 ring-indigo-300 transition-all outline-none">
-              <Avatar className="w-8 h-8">
-                <AvatarFallback className="bg-indigo-100 text-indigo-700 text-xs font-bold">
-                  {user?.username?.[0]?.toUpperCase() || 'U'}
-                </AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>
-                <p className="font-semibold">{user?.username}</p>
-                <p className="text-xs text-gray-500 font-normal">{user?.email}</p>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push('/onboarding')}>
-                설정
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
-                로그아웃
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left: Timetable + Exams */}
-        <div className="flex-1 overflow-auto p-4">
-          <Tabs defaultValue="timetable">
-            <TabsList className="mb-4">
-              <TabsTrigger value="timetable">시간표</TabsTrigger>
-              <TabsTrigger value="exams">시험 일정</TabsTrigger>
-            </TabsList>
-            <TabsContent value="timetable">
-              {isLoading ? (
-                <div className="flex items-center justify-center h-64">
-                  <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        {/* Share Modal */}
+        <Dialog open={isShareModalOpen} onOpenChange={(open) => !open && closeShareModal()}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>시간표 공유</DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+              {isGeneratingShare ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="w-6 h-6 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--skema-secondary-container)', borderTopColor: 'transparent' }} />
+                </div>
+              ) : shareUrl ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    아래 링크를 공유하면 누구나 내 시간표를 볼 수 있습니다.
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      readOnly
+                      value={shareUrl}
+                      className="flex-1 px-3 py-2 text-xs border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                    />
+                    <Button size="sm" onClick={copyShareUrl} className="flex-shrink-0" style={{ background: 'var(--skema-primary)', color: '#fff' }}>
+                      복사
+                    </Button>
+                  </div>
                 </div>
               ) : (
-                <Timetable schedules={schedules} />
+                <p className="text-sm text-red-500">공유 링크를 생성할 수 없습니다.</p>
               )}
-            </TabsContent>
-            <TabsContent value="exams">
-              <ExamList />
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        {/* Right: AI Chat Sidebar */}
-        {isChatOpen && (
-          <div className="w-80 flex-shrink-0 overflow-hidden border-l">
-            <AIChat onClose={toggleChat} />
-          </div>
-        )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={closeShareModal}>닫기</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
-
-      {/* Class Form Dialog */}
-      <ClassForm />
-
-      {/* Share Modal */}
-      <Dialog open={isShareModalOpen} onOpenChange={(open) => !open && closeShareModal()}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>시간표 공유</DialogTitle>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            {isGeneratingShare ? (
-              <div className="flex items-center justify-center py-4">
-                <div className="w-6 h-6 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-              </div>
-            ) : shareUrl ? (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  아래 링크를 공유하면 누구나 내 시간표를 볼 수 있습니다.
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    readOnly
-                    value={shareUrl}
-                    className="flex-1 px-3 py-2 text-xs border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-                  />
-                  <Button size="sm" onClick={copyShareUrl} className="bg-indigo-600 hover:bg-indigo-700 flex-shrink-0">
-                    복사
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-red-500">공유 링크를 생성할 수 없습니다.</p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={closeShareModal}>닫기</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+    </>
   );
 }

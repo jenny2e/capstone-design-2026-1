@@ -7,6 +7,9 @@ import { toast } from 'sonner';
 import { useLogin } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
 import { useQueryClient } from '@tanstack/react-query';
+import AuthNavbar from '@/components/layout/AuthNavbar';
+import AuthFooter from '@/components/layout/AuthFooter';
+import MaterialIcon from '@/components/common/MaterialIcon';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -58,16 +61,6 @@ export default function LoginPage() {
   return (
     <>
       <style>{`
-        .font-headline { font-family: var(--font-manrope), Manrope, sans-serif; }
-        .ms {
-          font-family: 'Material Symbols Outlined';
-          font-weight: normal; font-style: normal;
-          font-size: 24px; line-height: 1;
-          letter-spacing: normal; text-transform: none;
-          display: inline-block; white-space: nowrap;
-          direction: ltr; -webkit-font-smoothing: antialiased;
-          font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;
-        }
         .glass-panel {
           background: rgba(255,255,255,0.72);
           backdrop-filter: blur(20px);
@@ -75,12 +68,12 @@ export default function LoginPage() {
         }
         .input-field {
           width: 100%;
-          background: #f1f4f7;
+          background: var(--skema-surface-low);
           border: 1.5px solid transparent;
           border-radius: 10px;
           padding: 13px 16px;
           font-size: 14px;
-          color: #181c1e;
+          color: var(--skema-on-surface);
           outline: none;
           transition: border-color 0.2s, box-shadow 0.2s;
           font-family: Inter, sans-serif;
@@ -93,7 +86,7 @@ export default function LoginPage() {
         .input-field.error { border-color: #ef4444; }
         .submit-btn {
           width: 100%;
-          background: #3b66cc;
+          background: var(--skema-primary-hover);
           color: #fff;
           border: none;
           border-radius: 999px;
@@ -101,7 +94,7 @@ export default function LoginPage() {
           font-size: 15px;
           font-weight: 700;
           cursor: pointer;
-          box-shadow: 0 6px 20px rgba(26,77,178,0.22);
+          box-shadow: 0 6px 20px var(--skema-primary-shadow);
           transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
           font-family: Inter, sans-serif;
         }
@@ -110,26 +103,9 @@ export default function LoginPage() {
         .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
       `}</style>
 
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f7fafd', color: '#181c1e' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--skema-surface)', color: 'var(--skema-on-surface)' }}>
 
-        {/* ── Navbar ── */}
-        <nav style={{
-          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-          background: 'rgba(247,250,253,0.88)', backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)', borderBottom: '1px solid #ebeef1',
-        }}>
-          <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
-              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#1a4db2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span className="ms" style={{ fontSize: '17px', color: '#fff', fontVariationSettings: "'FILL' 1" }}>schedule</span>
-              </div>
-              <span className="font-headline" style={{ fontWeight: 800, fontSize: '20px', color: '#181c1e' }}>SKEMA</span>
-            </Link>
-            <Link href="/register" style={{ fontSize: '14px', fontWeight: 700, color: '#fff', background: '#3b66cc', padding: '8px 22px', borderRadius: '999px', textDecoration: 'none', transition: 'background 0.2s' }}>
-              회원가입
-            </Link>
-          </div>
-        </nav>
+        <AuthNavbar mode="login" />
 
         {/* ── Main ── */}
         <main style={{ flexGrow: 1, display: 'flex', paddingTop: '64px' }}>
@@ -141,13 +117,13 @@ export default function LoginPage() {
 
               {/* Headline */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#1a4db2', letterSpacing: '2.5px', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--skema-primary)', letterSpacing: '2.5px', textTransform: 'uppercase' }}>
                   AI 시간 설계의 시작
                 </span>
-                <h1 className="font-headline" style={{ fontSize: '40px', fontWeight: 800, lineHeight: 1.2, color: '#181c1e' }}>
+                <h1 className="skema-headline" style={{ fontSize: '40px', fontWeight: 800, lineHeight: 1.2, color: 'var(--skema-on-surface)' }}>
                   나의 시간을<br />AI와 함께<br />설계하세요.
                 </h1>
-                <p style={{ fontSize: '16px', color: '#434653', lineHeight: 1.75, maxWidth: '380px' }}>
+                <p style={{ fontSize: '16px', color: 'var(--skema-on-surface-variant)', lineHeight: 1.75, maxWidth: '380px' }}>
                   SKEMA와 함께라면 복잡한 일정도 간단해집니다. AI가 최적의 시간표를 설계해드립니다.
                 </p>
               </div>
@@ -158,10 +134,10 @@ export default function LoginPage() {
                   { icon: 'auto_awesome', title: '스마트 스케줄링', desc: '집중력 최고점 시간대에 맞춰 과제를 자동 배치합니다.' },
                   { icon: 'analytics', title: '시간 인사이트', desc: '나의 생산성 흐름을 분석하여 최적의 패턴을 찾아드립니다.' },
                 ].map((card) => (
-                  <div key={card.icon} style={{ background: '#ebeef1', borderRadius: '14px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <span className="ms" style={{ color: '#1a4db2', fontVariationSettings: "'FILL' 1" }}>{card.icon}</span>
-                    <div className="font-headline" style={{ fontWeight: 700, fontSize: '15px', color: '#181c1e' }}>{card.title}</div>
-                    <p style={{ fontSize: '13px', color: '#434653', lineHeight: 1.6 }}>{card.desc}</p>
+                  <div key={card.icon} style={{ background: 'var(--skema-container)', borderRadius: '14px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <MaterialIcon icon={card.icon} color="var(--skema-primary)" filled />
+                    <div className="skema-headline" style={{ fontWeight: 700, fontSize: '15px', color: 'var(--skema-on-surface)' }}>{card.title}</div>
+                    <p style={{ fontSize: '13px', color: 'var(--skema-on-surface-variant)', lineHeight: 1.6 }}>{card.desc}</p>
                   </div>
                 ))}
               </div>
@@ -177,8 +153,8 @@ export default function LoginPage() {
                 {/* glass stat card */}
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <div className="glass-panel" style={{ padding: '28px 36px', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', border: '1px solid rgba(255,255,255,0.3)', textAlign: 'center' }}>
-                    <div className="font-headline" style={{ fontSize: '40px', fontWeight: 900, color: '#1a4db2', lineHeight: 1 }}>85%</div>
-                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#434653', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '6px' }}>평균 효율 향상</div>
+                    <div className="skema-headline" style={{ fontSize: '40px', fontWeight: 900, color: 'var(--skema-primary)', lineHeight: 1 }}>85%</div>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--skema-on-surface-variant)', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '6px' }}>평균 효율 향상</div>
                   </div>
                 </div>
               </div>
@@ -190,10 +166,10 @@ export default function LoginPage() {
 
                 {/* Title */}
                 <div style={{ marginBottom: '28px' }}>
-                  <h2 className="font-headline" style={{ fontSize: '28px', fontWeight: 800, color: '#181c1e', marginBottom: '6px' }}>
+                  <h2 className="skema-headline" style={{ fontSize: '28px', fontWeight: 800, color: 'var(--skema-on-surface)', marginBottom: '6px' }}>
                     로그인
                   </h2>
-                  <p style={{ fontSize: '14px', color: '#434653' }}>SKEMA에서 나만의 시간표를 관리하세요.</p>
+                  <p style={{ fontSize: '14px', color: 'var(--skema-on-surface-variant)' }}>SKEMA에서 나만의 시간표를 관리하세요.</p>
                 </div>
 
                 {/* Form */}
@@ -201,7 +177,7 @@ export default function LoginPage() {
 
                   {/* Username */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#434653', letterSpacing: '1.2px', textTransform: 'uppercase', marginBottom: '7px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--skema-on-surface-variant)', letterSpacing: '1.2px', textTransform: 'uppercase', marginBottom: '7px' }}>
                       아이디
                     </label>
                     <input
@@ -216,7 +192,7 @@ export default function LoginPage() {
 
                   {/* Password */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#434653', letterSpacing: '1.2px', textTransform: 'uppercase', marginBottom: '7px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--skema-on-surface-variant)', letterSpacing: '1.2px', textTransform: 'uppercase', marginBottom: '7px' }}>
                       비밀번호
                     </label>
                     <div style={{ position: 'relative' }}>
@@ -231,9 +207,9 @@ export default function LoginPage() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#747684', padding: '4px', display: 'flex', alignItems: 'center' }}
+                        style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--skema-outline-strong)', padding: '4px', display: 'flex', alignItems: 'center' }}
                       >
-                        <span className="ms" style={{ fontSize: '20px' }}>{showPassword ? 'visibility_off' : 'visibility'}</span>
+                        <MaterialIcon icon={showPassword ? 'visibility_off' : 'visibility'} size={20} />
                       </button>
                     </div>
                     {errors.password && <p style={{ fontSize: '12px', color: '#ef4444', marginTop: '5px' }}>{errors.password}</p>}
@@ -247,17 +223,17 @@ export default function LoginPage() {
                 {/* Divider */}
                 <div style={{ position: 'relative', margin: '24px 0' }}>
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center' }}>
-                    <div style={{ width: '100%', height: '1px', background: '#e5e8eb' }} />
+                    <div style={{ width: '100%', height: '1px', background: 'var(--skema-container-high)' }} />
                   </div>
                   <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
-                    <span style={{ background: '#fff', padding: '0 16px', fontSize: '11px', fontWeight: 700, color: '#747684', letterSpacing: '1px', textTransform: 'uppercase' }}>또는</span>
+                    <span style={{ background: '#fff', padding: '0 16px', fontSize: '11px', fontWeight: 700, color: 'var(--skema-outline-strong)', letterSpacing: '1px', textTransform: 'uppercase' }}>또는</span>
                   </div>
                 </div>
 
                 {/* Bottom link */}
-                <p style={{ textAlign: 'center', fontSize: '14px', color: '#434653' }}>
+                <p style={{ textAlign: 'center', fontSize: '14px', color: 'var(--skema-on-surface-variant)' }}>
                   계정이 없으신가요?{' '}
-                  <Link href="/register" style={{ color: '#3b66cc', fontWeight: 700, textDecoration: 'none' }}>
+                  <Link href="/register" style={{ color: 'var(--skema-primary-hover)', fontWeight: 700, textDecoration: 'none' }}>
                     회원가입
                   </Link>
                 </p>
@@ -267,40 +243,7 @@ export default function LoginPage() {
           </div>
         </main>
 
-        {/* ── Footer ── */}
-        <footer style={{ background: '#ebeef1', padding: '48px 24px' }}>
-          <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '32px', marginBottom: '32px' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#1a4db2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span className="ms" style={{ fontSize: '15px', color: '#fff', fontVariationSettings: "'FILL' 1" }}>schedule</span>
-                </div>
-                <span className="font-headline" style={{ fontWeight: 800, fontSize: '17px', color: '#181c1e' }}>SKEMA</span>
-              </div>
-              <p style={{ fontSize: '13px', color: '#434653', lineHeight: 1.6 }}>AI 기반 스마트 시간표 관리 서비스</p>
-              <p style={{ fontSize: '12px', color: '#747684', marginTop: '6px' }}>© 2026 SKEMA. AI 기반 일정 관리 서비스</p>
-            </div>
-            <div>
-              <h4 style={{ fontSize: '11px', fontWeight: 700, color: '#1a4db2', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '12px' }}>서비스</h4>
-              {['이용약관', '개인정보처리방침', '고객센터'].map((t) => (
-                <div key={t} style={{ fontSize: '13px', color: '#44474a', marginBottom: '8px', cursor: 'pointer' }}>{t}</div>
-              ))}
-            </div>
-            <div style={{ background: 'rgba(224,227,230,0.5)', borderRadius: '14px', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <p style={{ fontSize: '13px', color: '#434653', fontStyle: 'italic', lineHeight: 1.6 }}>
-                &ldquo;한 번에 하나씩 집중하는 것이 많은 일을 해내는 가장 빠른 방법입니다.&rdquo;
-              </p>
-              <div style={{ display: 'flex', gap: '14px', marginTop: '16px' }}>
-                {['alarm_on', 'schedule', 'event_available'].map((icon) => (
-                  <span key={icon} className="ms" style={{ color: '#3b66cc', fontVariationSettings: "'FILL' 1" }}>{icon}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div style={{ borderTop: '1px solid #d0d3d6', paddingTop: '20px', textAlign: 'center', fontSize: '12px', color: '#747684', maxWidth: '1280px', margin: '0 auto' }}>
-            © 2026 SKEMA. AI 기반 시간 설계 서비스
-          </div>
-        </footer>
+        <AuthFooter />
       </div>
     </>
   );
