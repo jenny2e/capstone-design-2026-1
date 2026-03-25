@@ -120,14 +120,7 @@ export default function LandingPage() {
         .nav-link-active {
           color: #1a4db2 !important;
           font-weight: 700;
-        }
-        .nav-link-active::after {
-          content: '';
-          display: block;
-          height: 2px;
-          background: #1a4db2;
-          border-radius: 2px;
-          margin-top: 2px;
+          text-decoration: none !important;
         }
       `}</style>
 
