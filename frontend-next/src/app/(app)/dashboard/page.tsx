@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -25,11 +25,13 @@ import { Timetable } from '@/components/timetable/Timetable';
 import { ClassForm } from '@/components/class-form/ClassForm';
 import { AIChat } from '@/components/ai-chat/AIChat';
 import { ExamList } from '@/components/exam/ExamList';
+import { SettingsModal } from '@/components/settings/SettingsModal';
 import { useSchedules } from '@/hooks/useSchedules';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { api } from '@/lib/api';
 import MaterialIcon from '@/components/common/MaterialIcon';
+import { Schedule } from '@/types';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -38,6 +40,44 @@ export default function DashboardPage() {
   const { data: schedules = [], isLoading } = useSchedules();
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [isGeneratingShare, setIsGeneratingShare] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [notification, setNotification] = useState<Schedule | null>(null);
+
+  // Notification system
+  const checkNotifications = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const notifEnabled = localStorage.getItem('skema_notif_enabled') !== 'false';
+    if (!notifEnabled || !schedules.length) return;
+    const notifMinutes = parseInt(localStorage.getItem('skema_notif_minutes') || '30', 10);
+    const now = new Date();
+    const todayDow = now.getDay() === 0 ? 6 : now.getDay() - 1;
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const todayStr = now.toISOString().slice(0, 10);
+    const upcoming = schedules.find((s) => {
+      if (s.is_completed) return false;
+      const matchDay = s.date ? s.date === todayStr : s.day_of_week === todayDow;
+      if (!matchDay) return false;
+      const [sh, sm] = s.start_time.split(':').map(Number);
+      const startMin = sh * 60 + sm;
+      const diff = startMin - nowMin;
+      return diff > 0 && diff <= notifMinutes;
+    });
+    if (upcoming) {
+      setNotification(upcoming);
+      setTimeout(() => setNotification(null), 8000);
+    }
+  }, [schedules]);
+
+  useEffect(() => {
+    checkNotifications();
+    const interval = setInterval(checkNotifications, 60000);
+    return () => clearInterval(interval);
+  }, [checkNotifications]);
+
+  // Completion rate
+  const total = schedules.length;
+  const done = schedules.filter((s) => s.is_completed).length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : null;
 
   const handleLogout = () => {
     logout();
@@ -77,18 +117,55 @@ export default function DashboardPage() {
         @media (min-width: 640px) { .hide-mobile { display: inline; } }
       `}</style>
       <div className="flex flex-col h-screen" style={{ background: 'var(--skema-surface)' }}>
+
+        {/* Notification Banner */}
+        {notification && (
+          <div
+            style={{
+              position: 'fixed', top: 64, right: 16, zIndex: 200,
+              background: '#fff', border: '1px solid rgba(195,198,213,0.25)',
+              borderLeft: '4px solid var(--skema-primary)',
+              borderRadius: 14, padding: '12px 16px',
+              boxShadow: '0 8px 32px rgba(24,28,30,0.12)',
+              maxWidth: 300, display: 'flex', gap: 10, alignItems: 'flex-start',
+              cursor: 'pointer',
+            }}
+            onClick={() => { openClassForm(notification); setNotification(null); }}
+          >
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#dae1ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <MaterialIcon icon="notifications_active" size={18} color="var(--skema-primary)" filled />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: 13, color: '#181c1e' }}>곧 시작! (클릭하면 일정 확인)</div>
+              <div style={{ fontSize: 12, color: '#434653', marginTop: 2 }}>{notification.title} — {notification.start_time}</div>
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); setNotification(null); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#747684', fontSize: 16, padding: 0, lineHeight: 1 }}
+            >×</button>
+          </div>
+        )}
         {/* Header */}
         <header style={{
           height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 20px', borderBottom: '1px solid var(--skema-container)',
           background: '#fff', position: 'sticky', top: 0, zIndex: 30, flexShrink: 0
         }}>
-          {/* Left: Logo */}
+          {/* Left: Logo + completion rate */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: 'var(--skema-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <MaterialIcon icon="schedule" size={15} color="#fff" filled />
             </div>
             <span className="skema-headline" style={{ fontWeight: 800, fontSize: '18px', color: 'var(--skema-on-surface)' }}>SKEMA</span>
+            {pct !== null && (
+              <span style={{
+                padding: '2px 10px', borderRadius: 9999, fontSize: 11, fontWeight: 700,
+                background: pct >= 80 ? '#d1fae5' : pct >= 40 ? '#fef9c3' : 'var(--skema-surface-low)',
+                color: pct >= 80 ? '#059669' : pct >= 40 ? '#d97706' : 'var(--skema-on-surface-variant)',
+              }}>
+                수행률 {pct}% ({done}/{total})
+              </span>
+            )}
           </div>
 
           {/* Right: Actions */}
@@ -134,7 +211,7 @@ export default function DashboardPage() {
                   <p className="text-xs text-gray-500 font-normal">{user?.email}</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push('/onboarding')}>
+                <DropdownMenuItem onClick={() => setIsSettingsOpen(true)}>
                   설정
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -181,6 +258,9 @@ export default function DashboardPage() {
 
         {/* Class Form Dialog */}
         <ClassForm />
+
+        {/* Settings Modal */}
+        <SettingsModal open={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
         {/* Share Modal */}
         <Dialog open={isShareModalOpen} onOpenChange={(open) => !open && closeShareModal()}>

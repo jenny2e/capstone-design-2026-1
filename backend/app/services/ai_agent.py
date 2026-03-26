@@ -328,41 +328,40 @@ def _execute_tool(tool_name: str, tool_input: dict, db: Session, user_id: int) -
     return f"❌ 알 수 없는 도구: {tool_name}"
 
 
-# ─── Gemini tool builder ───────────────────────────────────────────────────────
+# ─── Gemini tool builder (google-genai SDK) ───────────────────────────────────
 
-def _build_gemini_tools():
-    import google.generativeai as genai
-    from google.generativeai import protos
+def _build_genai_tool():
+    from google.genai import types
 
     type_map = {
-        "string": protos.Type.STRING,
-        "integer": protos.Type.INTEGER,
-        "number": protos.Type.NUMBER,
-        "boolean": protos.Type.BOOLEAN,
-        "object": protos.Type.OBJECT,
+        "string": "STRING",
+        "integer": "INTEGER",
+        "number": "NUMBER",
+        "boolean": "BOOLEAN",
+        "object": "OBJECT",
     }
 
     function_declarations = []
     for spec in TOOLS_SPEC:
         props = {}
         for prop_name, prop_def in spec["parameters"].get("properties", {}).items():
-            props[prop_name] = protos.Schema(
-                type=type_map.get(prop_def.get("type", "string"), protos.Type.STRING),
+            props[prop_name] = types.Schema(
+                type=type_map.get(prop_def.get("type", "string"), "STRING"),
                 description=prop_def.get("description", ""),
             )
 
-        fd = protos.FunctionDeclaration(
+        fd = types.FunctionDeclaration(
             name=spec["name"],
             description=spec["description"],
-            parameters=protos.Schema(
-                type=protos.Type.OBJECT,
+            parameters=types.Schema(
+                type="OBJECT",
                 properties=props,
                 required=spec["parameters"].get("required", []),
             ),
         )
         function_declarations.append(fd)
 
-    return protos.Tool(function_declarations=function_declarations)
+    return types.Tool(function_declarations=function_declarations)
 
 
 # ─── main agent entry point ───────────────────────────────────────────────────
@@ -373,13 +372,13 @@ def run_ai_agent(
     user_message: str,
     conversation_history: list | None = None,
 ) -> str:
-    import google.generativeai as genai
-    from google.generativeai import protos
+    from google import genai
+    from google.genai import types
 
     if not settings.GEMINI_API_KEY:
         raise ValueError("GEMINI_API_KEY not configured")
 
-    genai.configure(api_key=settings.GEMINI_API_KEY)
+    client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
     today = date.today()
     tomorrow = today + timedelta(days=1)
@@ -406,53 +405,55 @@ def run_ai_agent(
 
 작업 완료 후 결과를 간결하게 안내하세요."""
 
-    gemini_tools = _build_gemini_tools()
-    model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
-        system_instruction=system_prompt,
-        tools=[gemini_tools],
-    )
+    genai_tool = _build_genai_tool()
 
-    # Convert conversation history to Gemini format (user/model roles)
+    # 대화 히스토리 변환
     history = []
     for msg in (conversation_history or []):
         role = "model" if msg["role"] == "assistant" else "user"
-        history.append({"role": role, "parts": [msg["content"]]})
+        history.append(
+            types.Content(role=role, parts=[types.Part.from_text(text=msg["content"])])
+        )
 
-    chat = model.start_chat(history=history)
+    chat = client.chats.create(
+        model="gemini-2.5-flash",
+        config=types.GenerateContentConfig(
+            system_instruction=system_prompt,
+            tools=[genai_tool],
+        ),
+        history=history,
+    )
 
     response = chat.send_message(user_message)
 
     for _ in range(15):
-        # Collect all function calls in this response
+        # 이번 응답에서 function call 수집
         fn_calls = [
             part.function_call
             for part in response.candidates[0].content.parts
-            if part.function_call.name  # non-empty name means it's a real call
+            if part.function_call is not None
         ]
 
         if not fn_calls:
-            # No more tool calls — return text
+            # 텍스트 응답 반환
             return "".join(
                 part.text
                 for part in response.candidates[0].content.parts
-                if hasattr(part, "text")
+                if part.text
             )
 
-        # Execute all tool calls and send results back
+        # 모든 tool 실행 후 결과 전달
         result_parts = []
         for fc in fn_calls:
-            tool_input = {k: v for k, v in fc.args.items()}
+            tool_input = dict(fc.args) if fc.args else {}
             result = _execute_tool(fc.name, tool_input, db, user_id)
             result_parts.append(
-                protos.Part(
-                    function_response=protos.FunctionResponse(
-                        name=fc.name,
-                        response={"result": result},
-                    )
+                types.Part.from_function_response(
+                    name=fc.name,
+                    response={"result": result},
                 )
             )
 
-        response = chat.send_message(protos.Content(parts=result_parts))
+        response = chat.send_message(result_parts)
 
     return "응답 생성 중 문제가 발생했습니다. 다시 시도해 주세요."

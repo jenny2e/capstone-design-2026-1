@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { login, register } from '../services/api';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export default function Login({ onLogin }) {
   const [searchParams] = useSearchParams();
@@ -9,6 +11,26 @@ export default function Login({ onLogin }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [focusedInput, setFocusedInput] = useState(null);
+
+  // OAuth 콜백: ?token= 또는 ?error= 처리
+  useEffect(() => {
+    const token = searchParams.get('token');
+    const oauthError = searchParams.get('error');
+
+    if (token) {
+      localStorage.setItem('token', token);
+      onLogin().catch(() => setError('소셜 로그인 후 정보를 불러오지 못했습니다.'));
+    } else if (oauthError === 'oauth_not_configured') {
+      const provider = searchParams.get('provider') || '';
+      setError(`${provider} 로그인이 아직 설정되지 않았습니다. 관리자에게 문의하세요.`);
+    } else if (oauthError) {
+      setError('소셜 로그인에 실패했습니다. 다시 시도해 주세요.');
+    }
+  }, []);
+
+  const handleSocialLogin = (provider) => {
+    window.location.href = `${API_BASE}/auth/${provider}/authorize`;
+  };
 
   const set = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
 
@@ -251,31 +273,33 @@ export default function Login({ onLogin }) {
                   <div style={{ flex: 1, height: 1, background: '#ebeef1' }} />
                 </div>
                 <div style={{ display: 'flex', gap: 10 }}>
-                  {['Google', 'Naver', 'Kakao'].map((label) => (
+                  {[
+                    { label: 'Google', provider: 'google', bg: '#fff', color: '#3c4043', border: '#dadce0' },
+                    { label: 'Naver', provider: 'naver', bg: '#03C75A', color: '#fff', border: '#03C75A' },
+                    { label: 'Kakao', provider: 'kakao', bg: '#FEE500', color: '#191919', border: '#FEE500' },
+                  ].map(({ label, provider, bg, color, border }) => (
                     <button
-                      key={label}
+                      key={provider}
                       type="button"
-                      disabled
-                      title="준비 중입니다"
+                      onClick={() => handleSocialLogin(provider)}
                       style={{
                         flex: 1, padding: '10px 0',
-                        border: '1px solid #e5e8eb',
+                        border: `1px solid ${border}`,
                         borderRadius: 9999,
-                        cursor: 'not-allowed',
-                        background: '#f1f4f7',
-                        color: '#747684',
+                        cursor: 'pointer',
+                        background: bg,
+                        color,
                         fontSize: 13, fontWeight: 600,
-                        opacity: 0.65,
                         fontFamily: "'Inter', sans-serif",
+                        transition: 'filter 0.15s',
                       }}
+                      onMouseEnter={(e) => { e.currentTarget.style.filter = 'brightness(0.93)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; }}
                     >
                       {label}
                     </button>
                   ))}
                 </div>
-                <p style={{ margin: '10px 0 0', fontSize: 11, color: '#747684', textAlign: 'center' }}>
-                  소셜 로그인은 준비 중입니다
-                </p>
               </>
             )}
           </div>

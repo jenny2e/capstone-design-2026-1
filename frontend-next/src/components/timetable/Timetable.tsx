@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Schedule } from '@/types';
 import { DAY_NAMES, timeToMinutes, cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { useDeleteSchedule } from '@/hooks/useSchedules';
+import { useDeleteSchedule, useToggleComplete } from '@/hooks/useSchedules';
 import { useUIStore } from '@/store/uiStore';
 import { toast } from 'sonner';
 
@@ -30,6 +30,7 @@ interface ScheduleBlockProps {
   readOnly: boolean;
   onEdit: (s: Schedule) => void;
   onDelete: (id: number) => void;
+  onToggleComplete: (id: number, completed: boolean) => void;
   startHour: number;
   totalMinutes: number;
 }
@@ -45,7 +46,7 @@ function getHeightPercent(start: string, end: string, startHour: number, endHour
   return ((endMin - startMin) / totalMinutes) * 100;
 }
 
-function ScheduleBlock({ schedule, isConflict, readOnly, onEdit, onDelete, startHour, totalMinutes }: ScheduleBlockProps) {
+function ScheduleBlock({ schedule, isConflict, readOnly, onEdit, onDelete, onToggleComplete, startHour, totalMinutes }: ScheduleBlockProps) {
   const [hovered, setHovered] = useState(false);
   const endHour = startHour + totalMinutes / 60;
   const top = getTopPercent(schedule.start_time, startHour, totalMinutes);
@@ -113,15 +114,27 @@ function ScheduleBlock({ schedule, isConflict, readOnly, onEdit, onDelete, start
           )}
         </div>
         {!readOnly && hovered && (
-          <button
-            className="flex-shrink-0 text-white/80 hover:text-white"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(schedule.id);
-            }}
-          >
-            ✕
-          </button>
+          <div className="flex flex-col gap-0.5 flex-shrink-0">
+            <button
+              className="text-white/80 hover:text-white leading-none"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(schedule.id);
+              }}
+            >
+              ✕
+            </button>
+            <button
+              className="text-white/80 hover:text-white leading-none"
+              title={schedule.is_completed ? '미완료로 변경' : '완료로 변경'}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleComplete(schedule.id, !schedule.is_completed);
+              }}
+            >
+              {schedule.is_completed ? '↩' : '✓'}
+            </button>
+          </div>
         )}
       </div>
       {schedule.is_completed && (
@@ -136,6 +149,7 @@ function ScheduleBlock({ schedule, isConflict, readOnly, onEdit, onDelete, start
 export function Timetable({ schedules, readOnly = false }: TimetableProps) {
   const openClassForm = useUIStore((s) => s.openClassForm);
   const deleteSchedule = useDeleteSchedule();
+  const toggleComplete = useToggleComplete();
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTimeTop, setCurrentTimeTop] = useState<number | null>(null);
 
@@ -269,6 +283,7 @@ export function Timetable({ schedules, readOnly = false }: TimetableProps) {
                     readOnly={readOnly}
                     onEdit={openClassForm}
                     onDelete={handleDelete}
+                    onToggleComplete={(id, completed) => toggleComplete.mutate({ id, is_completed: completed })}
                     startHour={visibleStart}
                     totalMinutes={TOTAL_MINUTES}
                   />

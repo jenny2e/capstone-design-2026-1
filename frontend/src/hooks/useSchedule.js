@@ -45,6 +45,23 @@ export function useSchedule() {
     setSchedules((prev) => prev.filter((s) => s.id !== id));
   };
 
+  const toggleComplete = async (id) => {
+    const target = schedules.find((s) => s.id === id);
+    if (!target) return;
+    // 낙관적 업데이트
+    setSchedules((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, is_completed: !s.is_completed } : s))
+    );
+    try {
+      await updateSchedule(id, { is_completed: !target.is_completed });
+    } catch {
+      // 실패 시 롤백
+      setSchedules((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, is_completed: target.is_completed } : s))
+      );
+    }
+  };
+
   return {
     schedules,
     loading,
@@ -53,5 +70,6 @@ export function useSchedule() {
     addSchedule,
     editSchedule,
     removeSchedule,
+    toggleComplete,
   };
 }

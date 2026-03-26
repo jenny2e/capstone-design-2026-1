@@ -12,6 +12,8 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+    social_provider = Column(String, nullable=True)   # "google" | "naver" | "kakao"
+    social_id = Column(String, nullable=True)          # provider's user ID
 
     schedules = relationship("Schedule", back_populates="user", cascade="all, delete-orphan")
     share_tokens = relationship("ShareToken", back_populates="user", cascade="all, delete-orphan")

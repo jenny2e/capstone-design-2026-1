@@ -43,3 +43,25 @@ export function useDeleteSchedule() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['schedules'] }),
   });
 }
+
+export function useToggleComplete() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, is_completed }: { id: number; is_completed: boolean }) => {
+      const { data } = await api.put<Schedule>(`/schedules/${id}`, { is_completed });
+      return data;
+    },
+    onMutate: async ({ id, is_completed }) => {
+      await qc.cancelQueries({ queryKey: ['schedules'] });
+      const prev = qc.getQueryData<Schedule[]>(['schedules']);
+      qc.setQueryData<Schedule[]>(['schedules'], (old) =>
+        old?.map((s) => (s.id === id ? { ...s, is_completed } : s)) ?? []
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prev) qc.setQueryData(['schedules'], context.prev);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['schedules'] }),
+  });
+}

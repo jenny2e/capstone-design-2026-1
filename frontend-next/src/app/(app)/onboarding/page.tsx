@@ -8,23 +8,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useUpdateProfile } from '@/hooks/useProfile';
+import { useCreateExam } from '@/hooks/useExams';
 
 const OCCUPATIONS = ['학생', '직장인', '프리랜서', '기타'];
 
 export default function OnboardingPage() {
   const router = useRouter();
   const updateProfile = useUpdateProfile();
+  const createExam = useCreateExam();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     occupation: '',
     sleep_start: '23:00',
     sleep_end: '07:00',
   });
+  const [examForm, setExamForm] = useState({ title: '', exam_date: '' });
 
   const handleNext = () => {
-    if (step === 1) {
-      setStep(2);
-    }
+    if (step < 3) setStep(step + 1);
   };
 
   const handleSubmit = () => {
@@ -40,6 +41,17 @@ export default function OnboardingPage() {
         },
       }
     );
+  };
+
+  const handleFinishWithExam = () => {
+    if (examForm.title && examForm.exam_date) {
+      createExam.mutate(
+        { title: examForm.title, exam_date: examForm.exam_date },
+        { onSettled: () => handleSubmit() }
+      );
+    } else {
+      handleSubmit();
+    }
   };
 
   const handleSkip = () => {
@@ -62,16 +74,27 @@ export default function OnboardingPage() {
               <div className={`h-full bg-indigo-600 rounded transition-all ${step >= 2 ? 'w-full' : 'w-0'}`} />
             </div>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-500'}`}>2</div>
+            <div className="flex-1 h-1 my-auto bg-gray-200 rounded">
+              <div className={`h-full bg-indigo-600 rounded transition-all ${step >= 3 ? 'w-full' : 'w-0'}`} />
+            </div>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 3 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-500'}`}>3</div>
           </div>
-          {step === 1 ? (
+          {step === 1 && (
             <>
               <CardTitle className="text-2xl font-bold">프로필 설정</CardTitle>
               <CardDescription>기본 정보를 입력해주세요</CardDescription>
             </>
-          ) : (
+          )}
+          {step === 2 && (
             <>
               <CardTitle className="text-2xl font-bold">수면 시간 설정</CardTitle>
               <CardDescription>AI가 일정 추천 시 참고합니다</CardDescription>
+            </>
+          )}
+          {step === 3 && (
+            <>
+              <CardTitle className="text-2xl font-bold">시험 일정 등록</CardTitle>
+              <CardDescription>가까운 시험을 등록해두세요 (선택)</CardDescription>
             </>
           )}
         </CardHeader>
@@ -145,15 +168,59 @@ export default function OnboardingPage() {
                 💡 수면 시간 설정을 통해 AI가 더 적합한 시간에 일정을 추천해드립니다.
               </div>
               <div className="flex gap-3 pt-2">
-                <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>
+                <Button variant="ghost" className="flex-1" onClick={handleSkip}>
+                  건너뛰기
+                </Button>
+                <Button variant="outline" onClick={() => setStep(1)}>
                   이전
                 </Button>
                 <Button
                   className="flex-1 bg-indigo-600 hover:bg-indigo-700"
-                  onClick={handleSubmit}
+                  onClick={handleNext}
                   disabled={updateProfile.isPending}
                 >
-                  {updateProfile.isPending ? '저장 중...' : '시작하기'}
+                  다음
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="exam_title">시험 이름</Label>
+                <Input
+                  id="exam_title"
+                  placeholder="예: 중간고사, 기말시험"
+                  value={examForm.title}
+                  onChange={(e) => setExamForm({ ...examForm, title: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="exam_date">시험 날짜</Label>
+                <Input
+                  id="exam_date"
+                  type="date"
+                  value={examForm.exam_date}
+                  onChange={(e) => setExamForm({ ...examForm, exam_date: e.target.value })}
+                />
+              </div>
+              <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4 text-sm text-indigo-700 dark:text-indigo-300">
+                💡 나중에 대시보드에서 시험 일정을 추가하거나 수정할 수 있습니다.
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button variant="ghost" className="flex-1" onClick={handleSubmit} disabled={updateProfile.isPending}>
+                  건너뛰기
+                </Button>
+                <Button variant="outline" onClick={() => setStep(2)}>
+                  이전
+                </Button>
+                <Button
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                  onClick={handleFinishWithExam}
+                  disabled={updateProfile.isPending || createExam.isPending}
+                >
+                  {updateProfile.isPending || createExam.isPending ? '저장 중...' : '시작하기'}
                 </Button>
               </div>
             </div>

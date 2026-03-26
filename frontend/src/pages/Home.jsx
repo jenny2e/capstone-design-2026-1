@@ -11,19 +11,24 @@ function useNotifications(schedules) {
 
   useEffect(() => {
     if (!schedules.length) return;
+    const notifEnabled = localStorage.getItem('skema_notif_enabled') !== 'false';
+    if (!notifEnabled) return;
+
+    const notifMinutes = parseInt(localStorage.getItem('skema_notif_minutes') || '30', 10);
     const now = new Date();
     const todayDow = now.getDay() === 0 ? 6 : now.getDay() - 1;
     const nowMin = now.getHours() * 60 + now.getMinutes();
     const todayStr = now.toISOString().slice(0, 10);
 
     const upcoming = schedules.find((s) => {
+      if (s.is_completed) return false;
       const sDow = s.date ? (new Date(s.date).getDay() === 0 ? 6 : new Date(s.date).getDay() - 1) : s.day_of_week;
       const matchDay = s.date ? s.date === todayStr : sDow === todayDow;
       if (!matchDay) return false;
       const [sh, sm] = s.start_time.split(':').map(Number);
       const startMin = sh * 60 + sm;
       const diff = startMin - nowMin;
-      return diff > 0 && diff <= 30;
+      return diff > 0 && diff <= notifMinutes;
     });
 
     if (upcoming && !notification) {
@@ -37,7 +42,7 @@ function useNotifications(schedules) {
 }
 
 export default function Home({ user, profile, onLogout, onProfileUpdate }) {
-  const { schedules, loading, error, fetchSchedules, addSchedule, editSchedule, removeSchedule } = useSchedule();
+  const { schedules, loading, error, fetchSchedules, addSchedule, editSchedule, removeSchedule, toggleComplete } = useSchedule();
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [shareUrl, setShareUrl] = useState('');
@@ -94,17 +99,23 @@ export default function Home({ user, profile, onLogout, onProfileUpdate }) {
           boxShadow: '0 8px 32px rgba(24,28,30,0.12)',
           maxWidth: 300,
           display: 'flex', gap: 12, alignItems: 'flex-start',
-        }}>
+          cursor: 'pointer',
+        }}
+          onClick={() => { setEditTarget(notification); dismiss(); }}
+        >
           <div style={{ width: 36, height: 36, borderRadius: 10, background: '#dae1ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <span className="material-symbols-outlined" style={{ color: '#1a4db2', fontSize: 20 }}>notifications_active</span>
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, color: '#181c1e', fontFamily: "'Manrope', sans-serif" }}>곧 시작!</div>
+            <div style={{ fontWeight: 700, fontSize: 13, color: '#181c1e', fontFamily: "'Manrope', sans-serif" }}>곧 시작! (클릭하면 일정 확인)</div>
             <div style={{ fontSize: 12, color: '#434653', marginTop: 2 }}>
               {notification.title} — {notification.start_time}
             </div>
           </div>
-          <button onClick={dismiss} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#747684', fontSize: 18, padding: 0, lineHeight: 1 }}>×</button>
+          <button
+            onClick={(e) => { e.stopPropagation(); dismiss(); }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#747684', fontSize: 18, padding: 0, lineHeight: 1 }}
+          >×</button>
         </div>
       )}
 
@@ -162,7 +173,22 @@ export default function Home({ user, profile, onLogout, onProfileUpdate }) {
         {/* Page header bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h1 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 22, color: '#181c1e', margin: 0, letterSpacing: '-0.3px' }}>내 시간표</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <h1 style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 800, fontSize: 22, color: '#181c1e', margin: 0, letterSpacing: '-0.3px' }}>내 시간표</h1>
+              {schedules.length > 0 && (() => {
+                const total = schedules.length;
+                const done = schedules.filter((s) => s.is_completed).length;
+                const pct = Math.round((done / total) * 100);
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '3px 10px', background: pct >= 80 ? '#d1fae5' : pct >= 40 ? '#fef9c3' : '#ebeef1', borderRadius: 9999 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: pct >= 80 ? '#059669' : pct >= 40 ? '#d97706' : '#434653', fontFamily: "'Inter', sans-serif" }}>
+                      수행률 {pct}%
+                    </span>
+                    <span style={{ fontSize: 10, color: '#747684', fontFamily: "'Inter', sans-serif" }}>{done}/{total}</span>
+                  </div>
+                );
+              })()}
+            </div>
             <p style={{ fontSize: 13, color: '#747684', margin: '2px 0 0', fontFamily: "'Inter', sans-serif" }}>{dateStr}</p>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -239,7 +265,7 @@ export default function Home({ user, profile, onLogout, onProfileUpdate }) {
             ) : error ? (
               <div style={{ padding: 24, color: '#ba1a1a', fontSize: 14 }}>{error}</div>
             ) : (
-              <Timetable schedules={schedules} onDelete={removeSchedule} onEdit={setEditTarget} />
+              <Timetable schedules={schedules} onDelete={removeSchedule} onEdit={setEditTarget} onToggleComplete={toggleComplete} />
             )}
           </div>
 

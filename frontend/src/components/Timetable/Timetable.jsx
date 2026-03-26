@@ -22,7 +22,7 @@ function hasConflict(schedule, allSchedules) {
   );
 }
 
-function ScheduleBlock({ schedule, allSchedules, onDelete, onEdit }) {
+function ScheduleBlock({ schedule, allSchedules, onDelete, onEdit, onToggleComplete }) {
   const [hovered, setHovered] = useState(false);
   const startMin = timeToMinutes(schedule.start_time);
   const endMin = timeToMinutes(schedule.end_time);
@@ -31,6 +31,7 @@ function ScheduleBlock({ schedule, allSchedules, onDelete, onEdit }) {
   const color = schedule.color || '#3B66CC';
   const conflict = hasConflict(schedule, allSchedules);
   const isUrgent = schedule.priority === 2;
+  const isDone = schedule.is_completed;
 
   return (
     <div
@@ -42,41 +43,63 @@ function ScheduleBlock({ schedule, allSchedules, onDelete, onEdit }) {
         height: `${height}px`,
         left: '4px',
         right: '4px',
-        background: conflict
+        background: isDone
+          ? 'rgba(100,100,100,0.35)'
+          : conflict
           ? `linear-gradient(160deg, ${color}DD, ${color}99)`
           : `linear-gradient(160deg, ${color}F2, ${color}CC)`,
-        borderLeft: `3.5px solid ${conflict ? '#ba1a1a' : isUrgent ? '#F97316' : color}`,
+        borderLeft: `3.5px solid ${isDone ? '#9ca3af' : conflict ? '#ba1a1a' : isUrgent ? '#F97316' : color}`,
         borderRadius: '0 10px 10px 0',
-        outline: conflict ? '1.5px dashed rgba(186,26,26,0.6)' : 'none',
+        outline: conflict && !isDone ? '1.5px dashed rgba(186,26,26,0.6)' : 'none',
         padding: '4px 7px',
         overflow: 'hidden',
         cursor: 'pointer',
         zIndex: 1,
         boxSizing: 'border-box',
-        boxShadow: conflict
+        boxShadow: isDone
+          ? 'none'
+          : conflict
           ? `0 4px 12px rgba(186,26,26,0.25), inset 0 1px 0 rgba(255,255,255,0.15)`
           : `0 2px 8px ${color}33, inset 0 1px 0 rgba(255,255,255,0.2)`,
         transform: hovered ? 'translateY(-1px) scaleX(1.01)' : 'none',
-        transition: 'transform 0.18s ease, box-shadow 0.18s ease',
+        transition: 'transform 0.18s ease, box-shadow 0.18s ease, opacity 0.2s',
+        opacity: isDone ? 0.6 : 1,
       }}
       onClick={() => onEdit && onEdit(schedule)}
     >
-      {conflict && (
+      {!isDone && conflict && (
         <div style={{ position: 'absolute', top: 2, left: 4, fontSize: 9, color: '#ba1a1a', fontWeight: 700 }}>
           ⚠
         </div>
       )}
-      {isUrgent && !conflict && (
+      {!isDone && isUrgent && !conflict && (
         <div style={{ position: 'absolute', top: 2, left: 4, fontSize: 9, color: '#F97316' }}>●</div>
       )}
-      <div style={{ color: 'white', fontSize: '11px', fontWeight: 700, lineHeight: 1.3, paddingLeft: conflict || isUrgent ? 12 : 0, fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ color: isDone ? 'rgba(255,255,255,0.6)' : 'white', fontSize: '11px', fontWeight: 700, lineHeight: 1.3, paddingLeft: (!isDone && (conflict || isUrgent)) ? 12 : 0, fontFamily: "'Inter', sans-serif", textDecoration: isDone ? 'line-through' : 'none' }}>
         {schedule.title}
       </div>
-      <div style={{ color: 'rgba(255,255,255,0.88)', fontSize: '10px' }}>
+      <div style={{ color: isDone ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.88)', fontSize: '10px' }}>
         {schedule.start_time}~{schedule.end_time}
       </div>
       {schedule.location && (
         <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: '10px' }}>{schedule.location}</div>
+      )}
+      {/* 완료 토글 버튼 */}
+      {onToggleComplete && height >= 32 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleComplete(schedule.id); }}
+          title={isDone ? '완료 취소' : '완료로 표시'}
+          style={{
+            position: 'absolute', bottom: 3, left: 5,
+            background: isDone ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.18)',
+            backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)',
+            color: 'white', border: 'none', borderRadius: '50%',
+            width: 14, height: 14, cursor: 'pointer', fontSize: 9,
+            lineHeight: '14px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          {isDone ? '✓' : '○'}
+        </button>
       )}
       {onDelete && (
         <button
@@ -99,7 +122,7 @@ function ScheduleBlock({ schedule, allSchedules, onDelete, onEdit }) {
   );
 }
 
-export default function Timetable({ schedules = [], onDelete, onEdit }) {
+export default function Timetable({ schedules = [], onDelete, onEdit, onToggleComplete }) {
   const totalHeight = HOURS.length * HOUR_PX;
 
   const [now, setNow] = useState(new Date());
@@ -271,6 +294,7 @@ export default function Timetable({ schedules = [], onDelete, onEdit }) {
                       allSchedules={colSchedules}
                       onDelete={onDelete}
                       onEdit={onEdit}
+                      onToggleComplete={onToggleComplete}
                     />
                   ))}
                 </div>

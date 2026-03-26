@@ -9,6 +9,16 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./timetable.db"
     GEMINI_API_KEY: str = ""
 
+    # OAuth credentials (set these in .env to enable social login)
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    NAVER_CLIENT_ID: str = ""
+    NAVER_CLIENT_SECRET: str = ""
+    KAKAO_CLIENT_ID: str = ""
+    KAKAO_CLIENT_SECRET: str = ""
+
+    FRONTEND_URL: str = "http://localhost:5173"
+
     class Config:
         env_file = ".env"
 

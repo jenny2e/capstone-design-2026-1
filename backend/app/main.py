@@ -16,6 +16,19 @@ def _migrate():
     """Add new columns to existing tables without dropping data."""
     insp = inspect(engine)
 
+    # users table migrations
+    user_cols = {c["name"] for c in insp.get_columns("users")}
+    user_migrations = []
+    if "social_provider" not in user_cols:
+        user_migrations.append("ALTER TABLE users ADD COLUMN social_provider TEXT")
+    if "social_id" not in user_cols:
+        user_migrations.append("ALTER TABLE users ADD COLUMN social_id TEXT")
+    if user_migrations:
+        with engine.connect() as conn:
+            for stmt in user_migrations:
+                conn.execute(text(stmt))
+            conn.commit()
+
     schedule_cols = {c["name"] for c in insp.get_columns("schedules")}
     migrations = []
     if "date" not in schedule_cols:

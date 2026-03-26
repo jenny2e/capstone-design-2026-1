@@ -14,6 +14,19 @@ export default function Settings({ profile: initialProfile, onClose, onProfileUp
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('profile');
+  const [notifEnabled, setNotifEnabled] = useState(
+    () => localStorage.getItem('skema_notif_enabled') !== 'false'
+  );
+  const [notifMinutes, setNotifMinutes] = useState(
+    () => parseInt(localStorage.getItem('skema_notif_minutes') || '30', 10)
+  );
+
+  const handleSaveNotif = () => {
+    localStorage.setItem('skema_notif_enabled', String(notifEnabled));
+    localStorage.setItem('skema_notif_minutes', String(notifMinutes));
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   useEffect(() => {
     getExams().then((r) => setExams(r.data)).catch(() => {});
@@ -91,7 +104,7 @@ export default function Settings({ profile: initialProfile, onClose, onProfileUp
 
         {/* Tabs */}
         <div style={{ display: 'flex', borderBottom: '1px solid rgba(195,198,213,0.2)' }}>
-          {[['profile', 'person', '프로필'], ['exams', 'edit_calendar', '시험 일정']].map(([id, icon, label]) => (
+          {[['profile', 'person', '프로필'], ['exams', 'edit_calendar', '시험 일정'], ['notifications', 'notifications', '알림']].map(([id, icon, label]) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
@@ -189,6 +202,64 @@ export default function Settings({ profile: initialProfile, onClose, onProfileUp
                   ))
                 )}
               </div>
+            </div>
+          )}
+
+          {activeTab === 'notifications' && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: '#f7fafd', borderRadius: 14, marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#181c1e', fontFamily: "'Manrope', sans-serif" }}>알림 활성화</div>
+                  <div style={{ fontSize: 12, color: '#747684', marginTop: 2 }}>일정 시작 전 알림을 받습니다</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setNotifEnabled((v) => !v)}
+                  style={{
+                    width: 48, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer',
+                    background: notifEnabled ? '#1a4db2' : '#c3c6d5',
+                    position: 'relative', transition: 'background 0.2s',
+                  }}
+                >
+                  <span style={{
+                    position: 'absolute', top: 3, left: notifEnabled ? 25 : 3,
+                    width: 20, height: 20, borderRadius: '50%', background: '#fff',
+                    transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  }} />
+                </button>
+              </div>
+
+              {notifEnabled && (
+                <div style={{ marginBottom: 20 }}>
+                  <label style={labelStyle}>알림 시간 (분 전)</label>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {[5, 10, 15, 30, 60].map((min) => (
+                      <button
+                        key={min}
+                        type="button"
+                        onClick={() => setNotifMinutes(min)}
+                        style={{
+                          padding: '7px 16px', border: `1.5px solid ${notifMinutes === min ? '#1a4db2' : '#e5e8eb'}`,
+                          borderRadius: 9999, cursor: 'pointer',
+                          background: notifMinutes === min ? '#1a4db2' : '#fff',
+                          color: notifMinutes === min ? '#fff' : '#181c1e',
+                          fontSize: 13, fontWeight: notifMinutes === min ? 700 : 400,
+                          fontFamily: "'Inter', sans-serif", transition: 'all 0.15s',
+                        }}
+                      >
+                        {min}분 전
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={handleSaveNotif}
+                style={{ width: '100%', padding: '13px 0', background: saved ? '#059669' : '#1a4db2', color: '#fff', border: 'none', borderRadius: 9999, cursor: 'pointer', fontSize: 14, fontWeight: 700, fontFamily: "'Inter', sans-serif", transition: 'background 0.2s' }}
+              >
+                {saved ? '✓ 저장됨' : '저장'}
+              </button>
             </div>
           )}
         </div>
